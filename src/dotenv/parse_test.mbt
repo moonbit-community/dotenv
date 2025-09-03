@@ -161,7 +161,7 @@ test "parse doesn't expand variables in single quotes" {
 test "parse expands variables in double quotes" {
   let env_content = "THE_ANSWER=42\nDOUBLE_QUOTED=\"Value is $THE_ANSWER\""
   let result = parse(env_content)
-  inspect(result.get("DOUBLE_QUOTED"), content="Some(\"Value is $THE_ANSWER\")")
+  inspect(result.get("DOUBLE_QUOTED"), content="Some(\"Value is 42\")")
 }
 
 ///|

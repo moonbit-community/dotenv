@@ -32,33 +32,6 @@ fn is_whitespace(ch : Int) -> Bool {
   ch == 32 || ch == 9 || ch == 13 || ch == 10 // space, tab, CR, LF
 }
 
-///| Check if a string starts with a prefix
-fn starts_with(str : String, prefix : String) -> Bool {
-  if prefix.length() > str.length() {
-    return false
-  }
-  for i = 0; i < prefix.length(); i = i + 1 {
-    if str[i] != prefix[i] {
-      return false
-    }
-  }
-  true
-}
-
-///| Check if a string ends with a suffix
-fn ends_with(str : String, suffix : String) -> Bool {
-  if suffix.length() > str.length() {
-    return false
-  }
-  let offset = str.length() - suffix.length()
-  for i = 0; i < suffix.length(); i = i + 1 {
-    if str[offset + i] != suffix[i] {
-      return false
-    }
-  }
-  true
-}
-
 ///| Find the index of a character in a string
 fn index_of_char(str : String, ch : Int) -> Int? {
   for i = 0; i < str.length(); i = i + 1 {
@@ -160,15 +133,33 @@ fn expand_variables(
           i = i + 1
         }
       } else if i + 1 < str.length() && is_var_start_char(str[i + 1]) {
-        // Handle $VAR syntax
+        // Handle $VAR syntax - check for default value syntax VAR:-default
         let mut j = i + 1
         while j < str.length() && is_var_char(str[j]) {
           j = j + 1
         }
-        let var_name = str.substring(start=i + 1, end=j)
-        let value = get_variable_value(var_name, variables_map)
-        result = result + value
-        i = j
+
+        // Check if this is followed by :-default syntax
+        if j + 1 < str.length() && str[j] == 58 && str[j + 1] == 45 { // ':' = 58, '-' = 45
+          // Find the end of the default value (space, newline, or end of string)
+          let mut k = j + 2
+          while k < str.length() && str[k] != 32 && str[k] != 10 && str[k] != 13 {
+            k = k + 1
+          }
+          let var_name = str.substring(start=i + 1, end=j)
+          let default_value = str.substring(start=j + 2, end=k)
+          let expanded_default = expand_variables(default_value, variables_map)
+          match variables_map.get(var_name) {
+            Some(value) => result = result + value
+            None => result = result + expanded_default
+          }
+          i = k
+        } else {
+          let var_name = str.substring(start=i + 1, end=j)
+          let value = get_variable_value(var_name, variables_map)
+          result = result + value
+          i = j
+        }
       } else {
         // Dollar sign not followed by valid variable, treat as literal
         result = result + "$"
@@ -251,70 +242,6 @@ fn is_alnum(ch : Int) -> Bool {
   is_alpha(ch) || (ch >= 48 && ch <= 57) // 0-9
 }
 
-///| Parse the value part of a key-value pair, handling quotes and escapes
-fn parse_value(value_part : String) -> (String, Bool) {
-  let trimmed = trim_string(value_part)
-
-  // Handle single quotes - no interpolation
-  if starts_with(trimmed, "'") &&
-    ends_with(trimmed, "'") &&
-    trimmed.length() >= 2 {
-    let content = trimmed.substring(start=1, end=trimmed.length() - 1)
-    return (content, false)
-  }
-
-  // Handle double quotes - with interpolation
-  if starts_with(trimmed, "\"") &&
-    ends_with(trimmed, "\"") &&
-    trimmed.length() >= 2 {
-    let content = trimmed.substring(start=1, end=trimmed.length() - 1)
-    return (expand_characters(content), false)
-  }
-
-  // Unquoted value - trim and handle comments
-  let value = match index_of_char(trimmed, 35) { // '#' = 35
-    Some(pos) => trim_string(trimmed.substring(start=0, end=pos))
-    None => trimmed
-  }
-  (value, true) // true indicates this is unquoted and needs variable expansion
-}
-
-///| Parse a single line and extract key-value pair
-fn parse_line(line : String) -> (String, String, Bool)? {
-  let trimmed = trim_string(line)
-
-  // Skip empty lines and comments
-  if trimmed == "" || starts_with(trimmed, "#") {
-    return None
-  }
-
-  // Skip export prefix
-  let working_line = if starts_with(trimmed, "export ") {
-    trim_string(trimmed.substring(start=7))
-  } else {
-    trimmed
-  }
-
-  // Find the first = sign
-  match index_of_char(working_line, 61) { // '=' = 61
-    Some(eq_pos) => {
-      let key = trim_string(working_line.substring(start=0, end=eq_pos))
-      let value_part = working_line.substring(start=eq_pos + 1)
-
-      // Validate key format
-      if not(is_valid_key(key)) {
-        println(
-          "Warning: Ignored the key \"\{key}\" as it is not a valid identifier",
-        )
-        return None
-      }
-      let (value, needs_expansion) = parse_value(value_part)
-      Some((key, value, needs_expansion))
-    }
-    None => None
-  }
-}
-
 ///| Parse .env file content into a Map
 
 ///|
@@ -341,19 +268,51 @@ fn parse_line(line : String) -> (String, String, Bool)? {
 pub fn parse(text : String) -> Map[String, String] {
   let env : Map[String, String] = Map::new()
   let keys_for_expand_check : Array[String] = []
-  let lines = text.split("\n")
 
-  // First pass: parse all lines and collect keys that need expansion
-  for line_view in lines {
-    let line = line_view.to_string() // Convert StringView to String
-    match parse_line(line) {
-      Some((key, value, needs_expansion)) => {
-        env[key] = value
-        if needs_expansion {
-          keys_for_expand_check.push(key)
+  // Parse the entire text character by character to handle multiline values
+  let mut i = 0
+  while i < text.length() {
+    // Skip whitespace and empty lines
+    while i < text.length() && is_whitespace(text[i]) {
+      i = i + 1
+    }
+    if i >= text.length() {
+      break
+    }
+
+    // Skip comments
+    if text[i] == 35 { // '#' = 35
+      // Skip to end of line
+      while i < text.length() && text[i] != 10 { // '\n' = 10
+        i = i + 1
+      }
+      continue
+    }
+
+    // Parse key-value pair
+    match parse_kv_pair(text, i) {
+      Some((key, value, needs_expansion, next_pos)) => {
+        if is_valid_key(key) {
+          env[key] = value
+          if needs_expansion {
+            keys_for_expand_check.push(key)
+          }
+        } else {
+          println(
+            "Warning: Ignored the key \"\{key}\" as it is not a valid identifier",
+          )
+        }
+        i = next_pos
+      }
+      None => {
+        // Skip to next line if we can't parse this line
+        while i < text.length() && text[i] != 10 { // '\n' = 10
+          i = i + 1
+        }
+        if i < text.length() {
+          i = i + 1 // Skip the newline
         }
       }
-      None => continue
     }
   }
 
@@ -374,4 +333,153 @@ pub fn parse(text : String) -> Map[String, String] {
     }
   }
   env
+}
+
+///| Parse a key-value pair starting at position i
+fn parse_kv_pair(
+  text : String,
+  start_pos : Int,
+) -> (String, String, Bool, Int)? {
+  let mut i = start_pos
+
+  // Skip export prefix
+  if i + 7 < text.length() && text.substring(start=i, end=i + 7) == "export " {
+    i = i + 7
+    while i < text.length() && is_whitespace(text[i]) {
+      i = i + 1
+    }
+  }
+
+  // Parse key
+  let key_start = i
+  while i < text.length() && is_var_char(text[i]) {
+    i = i + 1
+  }
+  if i == key_start {
+    return None // No key found
+  }
+  let key = text.substring(start=key_start, end=i)
+
+  // Skip whitespace
+  while i < text.length() && (text[i] == 32 || text[i] == 9) { // space or tab
+    i = i + 1
+  }
+
+  // Expect '='
+  if i >= text.length() || text[i] != 61 { // '=' = 61
+    return None
+  }
+  i = i + 1
+
+  // Skip whitespace after =
+  while i < text.length() && (text[i] == 32 || text[i] == 9) { // space or tab
+    i = i + 1
+  }
+
+  // Parse value
+  if i >= text.length() {
+    return Some((key, "", true, i))
+  }
+  match parse_value_at_pos(text, i) {
+    Some((value, needs_expansion, next_pos)) =>
+      Some((key, value, needs_expansion, next_pos))
+    None => None
+  }
+}
+
+///| Parse value starting at position i, handling quotes and multiline
+fn parse_value_at_pos(text : String, start_pos : Int) -> (String, Bool, Int)? {
+  let mut i = start_pos
+  if i >= text.length() {
+    return Some(("", true, i))
+  }
+
+  // Handle single quotes
+  if text[i] == 39 { // '\'' = 39
+    i = i + 1
+    let value_start = i
+
+    // Find closing quote
+    while i < text.length() && text[i] != 39 {
+      i = i + 1
+    }
+    if i >= text.length() {
+      return None // Unclosed quote
+    }
+    let content = text.substring(start=value_start, end=i)
+    i = i + 1 // Skip closing quote
+
+    // Skip to end of line
+    while i < text.length() && text[i] != 10 && text[i] != 13 { // '\n' = 10, '\r' = 13
+      i = i + 1
+    }
+    if i < text.length() &&
+      text[i] == 13 &&
+      i + 1 < text.length() &&
+      text[i + 1] == 10 {
+      i = i + 2 // Skip \r\n
+    } else if i < text.length() && (text[i] == 10 || text[i] == 13) {
+      i = i + 1 // Skip \n or \r
+    }
+    return Some((content, false, i)) // Single quotes don't expand variables
+  }
+
+  // Handle double quotes  
+  if text[i] == 34 { // '\"' = 34
+    i = i + 1
+    let value_start = i
+
+    // Find closing quote
+    while i < text.length() && text[i] != 34 {
+      i = i + 1
+    }
+    if i >= text.length() {
+      return None // Unclosed quote
+    }
+    let content = text.substring(start=value_start, end=i)
+    let expanded_content = expand_characters(content)
+    i = i + 1 // Skip closing quote
+
+    // Skip to end of line
+    while i < text.length() && text[i] != 10 && text[i] != 13 { // '\n' = 10, '\r' = 13
+      i = i + 1
+    }
+    if i < text.length() &&
+      text[i] == 13 &&
+      i + 1 < text.length() &&
+      text[i + 1] == 10 {
+      i = i + 2 // Skip \r\n
+    } else if i < text.length() && (text[i] == 10 || text[i] == 13) {
+      i = i + 1 // Skip \n or \r
+    }
+    return Some((expanded_content, true, i)) // Double quotes expand variables
+  }
+
+  // Handle unquoted value
+  let value_start = i
+  while i < text.length() && text[i] != 10 && text[i] != 13 && text[i] != 35 { // not newline or #
+    i = i + 1
+  }
+  let mut value = text.substring(start=value_start, end=i)
+
+  // Handle inline comments
+  match index_of_char(value, 35) { // '#' = 35
+    Some(pos) => value = value.substring(start=0, end=pos)
+    None => ()
+  }
+  value = trim_string(value)
+
+  // Skip to end of line
+  while i < text.length() && text[i] != 10 && text[i] != 13 { // '\n' = 10, '\r' = 13
+    i = i + 1
+  }
+  if i < text.length() &&
+    text[i] == 13 &&
+    i + 1 < text.length() &&
+    text[i + 1] == 10 {
+    i = i + 2 // Skip \r\n
+  } else if i < text.length() && (text[i] == 10 || text[i] == 13) {
+    i = i + 1 // Skip \n or \r
+  }
+  Some((value, true, i)) // Unquoted values expand variables
 }
