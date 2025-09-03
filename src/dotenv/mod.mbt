@@ -66,17 +66,39 @@
 
 ///| @module
 
-///| Load options for parsing .env content
+///| Load options for parsing .env content and file-based loading
 pub struct LoadOptions {
-  /// Whether to export_to_env all .env variables to a global environment
+  /// Optional path to .env file. If None, defaults to "./.env"
+  env_path : String?
+  /// Whether to export all .env variables to a global environment
   ///| Note: MoonBit doesn't have a global process environment like Deno,
   ///| so this is for API compatibility and future extensions
-  export_to_env : Bool
-} derive(Show, Eq)
+  export_vars : Bool
+} derive(Show, Eq, Default)
 
 ///| Create default LoadOptions
 pub fn LoadOptions::default() -> LoadOptions {
-  LoadOptions::{ export_to_env: false }
+  LoadOptions::{ env_path: Some(".env"), export_vars: false }
+}
+
+///| Create LoadOptions with custom env_path
+pub fn LoadOptions::with_path(path : String) -> LoadOptions {
+  LoadOptions::{ env_path: Some(path), export_vars: false }
+}
+
+///| Create LoadOptions with export enabled
+pub fn LoadOptions::with_export() -> LoadOptions {
+  LoadOptions::{ env_path: Some(".env"), export_vars: true }
+}
+
+///| Create LoadOptions with custom path and export
+pub fn LoadOptions::with_path_and_export(path : String) -> LoadOptions {
+  LoadOptions::{ env_path: Some(path), export_vars: true }
+}
+
+///| Create LoadOptions with no env_path
+pub fn LoadOptions::no_file() -> LoadOptions {
+  LoadOptions::{ env_path: None, export_vars: false }
 }
 
 ///| Load environment variables from .env content string
@@ -85,7 +107,7 @@ pub fn LoadOptions::default() -> LoadOptions {
 
 ///| This function parses .env content and returns the environment variables
 
-///| as a Map. Unlike the Deno version, this doesn't read from filesystem
+///| as a Map. Unlike the file-based load functions, this doesn't read from filesystem
 
 ///| but takes content as a string parameter.
 
@@ -117,9 +139,9 @@ pub fn load_from_string(
   let conf = parse(content)
 
   // Note: In a real implementation with file system access,
-  // the export_to_env option would set environment variables.
+  // the export_vars option would set environment variables.
   // For now, we just return the parsed configuration.
-  if options.export_to_env {
+  if options.export_vars {
     // In a full implementation, this would export to global environment
     // Currently just returns the parsed configuration
   }

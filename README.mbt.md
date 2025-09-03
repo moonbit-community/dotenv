@@ -1,292 +1,231 @@
 # MoonBit Dotenv
 
-A MoonBit library for parsing and stringifying `.env` files, migrated from the Deno standard library.
+A comprehensive MoonBit implementation of dotenv functionality for parsing and handling .env files, migrated from the Deno standard library.
 
 ## Features
 
-- 🔧 **Parse .env files** - Convert .env file content into a Map
-- 📝 **Stringify Maps** - Convert Maps back to .env file format
-- 🚀 **Variable expansion** - Support for `$VAR` and `${VAR}` syntax
-- ⚙️ **Default values** - Support for `${VAR:-default}` syntax
-- 🛡️ **Escaped variables** - Support for `\$VAR` to prevent expansion
-- 🔄 **Recursive expansion** - Variables can reference other variables
-- 🎯 **Type safe** - Full MoonBit type safety
-- 🧪 **Well tested** - Comprehensive test suite
-- 📚 **Well documented** - Clear API documentation and examples
-
-## Installation
-
-Add this package to your MoonBit project:
-
-```bash
-moon add username/dotenv
-```
-
-Then import it in your `moon.pkg.json`:
-
-```json
-{
-  "import": ["username/dotenv/dotenv"]
-}
-```
+- **Parse .env file format** - Convert .env content to Map[String, String]
+- **Stringify environment variables** - Convert Map back to .env format
+- **Comments support** - Lines starting with # are ignored
+- **Quoted values** - Single and double quoted strings with escape sequences
+- **Multiline strings** - Support for multiline values in double quotes
+- **Variable expansion** - Support for $VAR and ${VAR} syntax
+- **Default values** - Support for ${VAR:-default} fallback syntax
+- **Recursive expansion** - Variables can reference other variables
+- **Escaped variables** - Use \$VAR to prevent expansion
+- **File-based loading** - Mock implementation for future file system integration
+- **Comprehensive test coverage** - Based on Deno std library test suite
 
 ## Quick Start
 
+### Basic Parsing
+
 ```moonbit
-// Parse .env content
 let env_content = "GREETING=hello world\nPORT=3000"
-let env = @dotenv.parse(env_content)
-
-// Access values
-match env.get("GREETING") {
-  Some(value) => println("Greeting: \{value}")
-  None => println("Greeting not found")
-}
-
-// Stringify back to .env format
-let stringified = @dotenv.stringify(env)
-println(stringified)
-```
-
-## API Reference
-
-### `parse(content: String) -> Map[String, String]`
-
-Parse .env file content into a Map.
-
-**Example:**
-```moonbit
-let content = "DB_HOST=localhost\nDB_PORT=5432"
-let env = @dotenv.parse(content)
-```
-
-### `stringify(env: Map[String, String]) -> String`
-
-Convert a Map to .env file format.
-
-**Example:**
-```moonbit
-let env : Map[String, String] = Map::new()
-env["API_KEY"] = "secret123"
-env["DEBUG"] = "true"
-let output = @dotenv.stringify(env)
-// Output: "API_KEY=secret123\nDEBUG=true"
-```
-
-### `load_from_string(content: String, options?: LoadOptions) -> Map[String, String]`
-
-Load environment variables from .env content with options.
-
-**Example:**
-```moonbit
-let content = "NODE_ENV=production"
-let options = @dotenv.LoadOptions::{ export_to_env: true }
-let env = @dotenv.load_from_string(content, options~)
-```
-
-## Supported .env Format
-
-The parser supports the standard .env file format with variable expansion:
-
-```bash
-# Comments start with #
-BASIC=basic
-
-# Empty values
-EMPTY=
-
-# Quoted values
-SINGLE_QUOTED='single quoted value'
-DOUBLE_QUOTED="double quoted value"
-
-# Multiline values (double quoted)
-MULTILINE="line1\nline2\nline3"
-
-# Values with special characters
-SPECIAL_CHARS='value with spaces and !@#'
-
-# Variable expansion (only in unquoted values)
-NAME=MoonBit
-GREETING=Hello $NAME
-FULL_GREETING=${GREETING}, welcome!
-
-# Default values
-PORT=${PORT:-8080}
-DATABASE_URL=${DB_URL:-sqlite://./default.db}
-
-# Nested defaults
-LOG_LEVEL=${LOG_LEVEL:-${DEFAULT_LOG_LEVEL:-info}}
-
-# Escaped variables (prevent expansion)
-ESCAPED_VAR=\$VERSION
-
-# Export syntax (ignored)
-export EXPORTED_VAR=value
-
-# Whitespace handling
-  INDENTED_VAR=value
-SPACED_VALUE = spaced value
-```
-
-## Parsing Rules
-
-- Empty lines and lines starting with `#` are ignored
-- Keys must match the pattern `/^[a-zA-Z_][a-zA-Z0-9_]*$/`
-- Values can be unquoted, single-quoted, or double-quoted
-- Double-quoted values support escape sequences (`\n`, `\r`, `\t`)
-- Single-quoted values are literal (no escape sequences or variable expansion)
-- **Variable expansion** only occurs in unquoted values:
-  - `$VAR` expands to the value of `VAR`
-  - `${VAR}` expands to the value of `VAR`
-  - `${VAR:-default}` expands to `VAR` if defined, otherwise `default`
-  - `\$VAR` prevents expansion (escaped)
-- Recursive expansion is supported (variables can reference other variables)
-- Whitespace around keys and unquoted values is trimmed
-- The `export` prefix is ignored
-
-## Stringification Rules
-
-- Values with special characters are automatically quoted
-- Values with spaces use single quotes
-- Values with newlines or single quotes use double quotes with escaping
-- Numeric-like values remain unquoted
-- Keys starting with `#` are ignored (treated as comments)
-
-## Examples
-
-### Basic Usage
-
-```moonbit
-let env_content = 
-  #|# Database configuration
-  #|DB_HOST=localhost
-  #|DB_PORT=5432
-  #|DB_NAME=myapp
-  #|
-
 let parsed = @dotenv.parse(env_content)
-println("Database host: \{parsed.get("DB_HOST").or("unknown")}")
-```
+// Returns: {"GREETING": "hello world", "PORT": "3000"}
 
-### Round-trip Conversion
-
-```moonbit
-let original = "GREETING=hello world\nNAME=MoonBit"
-let parsed = @dotenv.parse(original)
-let back_to_string = @dotenv.stringify(parsed)
-// Values are preserved through the round trip
+let stringified = @dotenv.stringify(parsed)
+// Returns .env formatted string
 ```
 
 ### Variable Expansion
 
 ```moonbit
 let env_content = 
-  #|# Base configuration
-  #|APP_NAME=MoonBit Demo
+  #|APP_NAME=MoonBit Dotenv
   #|VERSION=1.0.0
-  #|ENV=development
-  #|
-  #|# Variable expansion
-  #|APP_TITLE=$APP_NAME v$VERSION
-  #|FULL_INFO=${APP_NAME} version ${VERSION} (${ENV})
-  #|
-  #|# Default values
-  #|DATABASE_URL=${DB_URL:-sqlite://./default.db}
-  #|PORT=${PORT:-8080}
-  #|
-  #|# Nested defaults
-  #|LOG_LEVEL=${LOG_LEVEL:-${DEFAULT_LOG_LEVEL:-info}}
-  #|
-  #|# Escaped variables
-  #|ESCAPED=\$VERSION
+  #|APP_TITLE=${APP_NAME} v${VERSION}
+  #|DATABASE_URL=${DATABASE_URL:-sqlite://./default.db}
   #|
 
 let parsed = @dotenv.parse(env_content)
 // Results in:
-// APP_TITLE = "MoonBit Demo v1.0.0"
-// FULL_INFO = "MoonBit Demo version 1.0.0 (development)"
-// DATABASE_URL = "sqlite://./default.db" (using default)
-// PORT = "8080" (using default)
-// LOG_LEVEL = "info" (using nested default)
-// ESCAPED = "$VERSION" (literal, not expanded)
+// {
+//   "APP_NAME": "MoonBit Dotenv",
+//   "VERSION": "1.0.0", 
+//   "APP_TITLE": "MoonBit Dotenv v1.0.0",
+//   "DATABASE_URL": "sqlite://./default.db"
+// }
 ```
 
-### Error Handling
+### Load from String with Options
 
 ```moonbit
-let env_content = "1INVALID=value\nVALID_KEY=value"
-let parsed = @dotenv.parse(env_content)
-// Invalid keys are ignored with a warning
-// Only valid keys are included in the result
+let content = "DEBUG=true\nLOG_LEVEL=info"
+let options = @dotenv.LoadOptions::with_export()
+let config = @dotenv.load_from_string(content, options~)
 ```
 
-## Running the Examples
+### File-based Loading (Mock Implementation)
 
-Run the included examples:
+```moonbit
+// Load default .env file
+let config = @dotenv.load_sync()
 
+// Load specific file
+let config = @dotenv.load_sync(options=@dotenv.LoadOptions::with_path(".env.production"))
+
+// Auto-load with export
+@dotenv.auto_load()
+```
+
+## API Reference
+
+### Core Functions
+
+#### `parse(content: String) -> Map[String, String]`
+
+Parse .env file content into a Map of environment variables.
+
+**Features:**
+- Supports comments (lines starting with #)
+- Handles quoted and unquoted values
+- Processes escape sequences in double quotes
+- Expands variables using $VAR and ${VAR} syntax
+- Supports default values with ${VAR:-default}
+- Validates environment variable names
+
+#### `stringify(env: Map[String, String]) -> String`
+
+Convert environment variables Map back to .env file format.
+
+**Features:**
+- Automatically quotes values with special characters
+- Escapes quotes and newlines appropriately
+- Handles multiline values with double quotes
+- Skips invalid keys (starting with #)
+
+### Load Functions
+
+#### `load_from_string(content: String, options?: LoadOptions) -> Map[String, String]`
+
+Load environment variables from string content with optional configuration.
+
+#### `load_sync(options?: LoadOptions) -> Map[String, String]`
+
+Load environment variables from file (mock implementation).
+
+#### `load(options?: LoadOptions) -> Map[String, String]`
+
+Async version of load_sync (currently delegates to sync version).
+
+#### `auto_load() -> Unit`
+
+Automatically load .env file and export to environment (mock implementation).
+
+### LoadOptions
+
+```moonbit
+pub struct LoadOptions {
+  env_path : String?     // Path to .env file
+  export_vars : Bool     // Whether to export to environment
+}
+```
+
+**Constructors:**
+- `LoadOptions::default()` - Default options (.env, no export)
+- `LoadOptions::with_path(path: String)` - Custom path, no export
+- `LoadOptions::with_export()` - Default path with export
+- `LoadOptions::with_path_and_export(path: String)` - Custom path with export
+- `LoadOptions::no_file()` - No file path, no export
+
+## Supported .env Format
+
+### Basic Variables
 ```bash
-moon run dotenv_example.mbt
+# Comments start with #
+BASIC=basic value
+EMPTY_VALUE=
 ```
 
-## Running Tests
+### Quoted Values
+```bash
+SINGLE_QUOTED='single quoted value'
+DOUBLE_QUOTED="double quoted value"
+EMPTY_SINGLE=''
+EMPTY_DOUBLE=""
+```
+
+### Multiline Values
+```bash
+MULTILINE="line1\nline2\nline3"
+PRIVATE_KEY="-----BEGIN RSA PRIVATE KEY-----
+...key content...
+-----END RSA PRIVATE KEY-----"
+```
+
+### Variable Expansion
+```bash
+NAME=MoonBit
+VERSION=1.0.0
+APP_TITLE=$NAME v$VERSION
+FULL_INFO=${NAME} version ${VERSION}
+
+# Default values
+PORT=${PORT:-8080}
+DATABASE_URL=${DATABASE_URL:-sqlite://./default.db}
+
+# Nested defaults
+LOG_LEVEL=${LOG_LEVEL:-${DEFAULT_LOG_LEVEL:-info}}
+
+# Escaped variables (no expansion)
+ESCAPED=\$NAME
+```
+
+### Special Cases
+```bash
+# Export prefix is ignored
+export IGNORED_EXPORT=value
+
+# Whitespace handling
+  INDENTED_VAR=value
+VAR_WITH_SPACE = value with space
+
+# Equals in values
+COMPLEX_VALUE=key=value&other=thing
+
+# Invalid keys are ignored (warning shown)
+1INVALID=ignored
+```
+
+## Migration from Deno std/dotenv
+
+This implementation is based on the Deno standard library's dotenv module and maintains API compatibility where possible. Key differences:
+
+1. **File system access**: Current implementation provides mock file operations
+2. **Environment export**: Simulated rather than actual process environment modification  
+3. **Error handling**: Uses MoonBit's error handling patterns
+4. **Type system**: Leverages MoonBit's strong typing and pattern matching
+
+## Testing
+
+Run the comprehensive test suite:
 
 ```bash
 moon test
 ```
 
-## Project Structure
+The test suite includes:
+- All parsing scenarios from the reference implementation
+- Variable expansion edge cases
+- Round-trip parse/stringify testing
+- Load function testing
+- Error handling and invalid input testing
 
-```
-src/
-├── dotenv/
-│   ├── parse.mbt          # Parsing logic
-│   ├── parse_test.mbt     # Parse tests
-│   ├── stringify.mbt      # Stringification logic
-│   ├── stringify_test.mbt # Stringify tests
-│   ├── mod.mbt           # Main module interface
-│   ├── mod_test.mbt      # Module tests
-│   ├── moon.pkg.json     # Package configuration
-│   └── testdata/         # Test data files
-│       ├── .env.test
-│       ├── .env.comments
-│       └── .env.simple
-├── dotenv_example.mbt     # Usage examples
-└── dotenv_example_test.mbt # Example tests
-```
+## Examples
 
-## Differences from Deno std/dotenv
-
-This MoonBit implementation has some differences from the original Deno version:
-
-1. **No file system access** - Functions take content strings instead of file paths
-2. **No process environment** - The `export` option is for API compatibility (no global process environment)
-3. **Variable expansion** - Full variable expansion is implemented including `$VAR`, `${VAR}`, `${VAR:-default}`, and escaped variables
-4. **Different error handling** - Uses MoonBit's type system instead of exceptions
-
-## Implemented Features from Deno std
-
-✅ **Complete**: Variable expansion with `$VAR` and `${VAR}` syntax  
-✅ **Complete**: Default values with `${VAR:-default}` syntax  
-✅ **Complete**: Escaped variables with `\$VAR` syntax  
-✅ **Complete**: Recursive variable expansion  
-✅ **Complete**: Single and double quoted values  
-✅ **Complete**: Multi-line values and escape sequences  
-✅ **Complete**: Comments and empty lines  
-✅ **Complete**: Export prefix handling  
-✅ **Complete**: Comprehensive parsing and stringification
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Add tests for your changes
-4. Ensure all tests pass
-5. Submit a pull request
+See `dotenv_example.mbt` for comprehensive usage examples including:
+- Basic parsing and stringification
+- Variable expansion demonstrations
+- Round-trip conversion
+- Load functions usage
+- Advanced scenarios
 
 ## License
 
-Apache-2.0 License
+Apache-2.0
 
-## Credits
+## Contributing
 
-Migrated from the [Deno Standard Library](https://github.com/denoland/std) dotenv module.
+This module is migrated from the Deno standard library dotenv module. When contributing, please ensure compatibility with the reference implementation and maintain comprehensive test coverage.

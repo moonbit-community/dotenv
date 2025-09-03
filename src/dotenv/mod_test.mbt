@@ -19,7 +19,7 @@ test "load_from_string with default options" {
 ///|
 test "load_from_string with export option" {
   let content = "DEBUG=true\nLOG_LEVEL=info"
-  let options = LoadOptions::{ export_to_env: true }
+  let options = LoadOptions::with_export()
   let result = load_from_string(content, options~)
   inspect(result.size(), content="2")
   inspect(result.get("DEBUG"), content="Some(\"true\")")
@@ -29,7 +29,8 @@ test "load_from_string with export option" {
 ///|
 test "LoadOptions default" {
   let options = LoadOptions::default()
-  inspect(options.export_to_env, content="false")
+  inspect(options.export_vars, content="false")
+  inspect(options.env_path, content="Some(\".env\")")
 }
 
 ///|

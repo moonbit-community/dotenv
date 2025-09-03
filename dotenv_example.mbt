@@ -126,7 +126,7 @@ pub fn load_from_string_example() -> Unit {
   }
 
   // Load with export option (simulated)
-  let options = @dotenv.LoadOptions::{ export_to_env: true }
+  let options = @dotenv.LoadOptions::with_export()
   let config2 = @dotenv.load_from_string(env_content, options~)
   println("\nLoaded with export option:")
   for entry in config2 {
