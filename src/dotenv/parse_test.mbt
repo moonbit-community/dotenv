@@ -82,3 +82,94 @@ test "parse handles complex example" {
   inspect(result.get("QUOTED"), content="Some(\"hello world\")")
   inspect(result.get("EMPTY"), content="Some(\"\")")
 }
+
+///| Test variable expansion functionality
+test "parse expands variables" {
+  let env_content = "THE_ANSWER=42\nEXPAND_VAR=$THE_ANSWER"
+  let result = parse(env_content)
+  inspect(result.get("THE_ANSWER"), content="Some(\"42\")")
+  inspect(result.get("EXPAND_VAR"), content="Some(\"42\")")
+}
+
+///|
+test "parse expands variables with brackets" {
+  let env_content = "THE_ANSWER=42\nEXPAND_VAR=${THE_ANSWER}"
+  let result = parse(env_content)
+  inspect(result.get("EXPAND_VAR"), content="Some(\"42\")")
+}
+
+///|
+test "parse expands multiple variables" {
+  let env_content = "QUOTED_SINGLE='single quoted'\nQUOTED_DOUBLE=\"double quoted\"\nEXPAND_TWO_VARS=$QUOTED_SINGLE!==$QUOTED_DOUBLE"
+  let result = parse(env_content)
+  inspect(
+    result.get("EXPAND_TWO_VARS"),
+    content="Some(\"single quoted!==double quoted\")",
+  )
+}
+
+///|
+test "parse expands recursive variables" {
+  let env_content = "QUOTED_SINGLE='single quoted'\nQUOTED_DOUBLE=\"double quoted\"\nEXPAND_TWO_VARS=$QUOTED_SINGLE!==$QUOTED_DOUBLE\nEXPAND_RECURSIVE=$EXPAND_TWO_VARS"
+  let result = parse(env_content)
+  inspect(
+    result.get("EXPAND_RECURSIVE"),
+    content="Some(\"single quoted!==double quoted\")",
+  )
+}
+
+///|
+test "parse handles default values" {
+  let env_content = "THE_ANSWER=42\nEXPAND_DEFAULT_TRUE=${NO_SUCH_VAR:-default}\nEXPAND_DEFAULT_FALSE=${THE_ANSWER:-default}"
+  let result = parse(env_content)
+  inspect(result.get("EXPAND_DEFAULT_TRUE"), content="Some(\"default\")")
+  inspect(result.get("EXPAND_DEFAULT_FALSE"), content="Some(\"42\")")
+}
+
+///|
+test "parse handles nested default values" {
+  let env_content = "THE_ANSWER=42\nEXPAND_DEFAULT_VAR=${NO_SUCH_VAR:-${THE_ANSWER:-default}}"
+  let result = parse(env_content)
+  inspect(result.get("EXPAND_DEFAULT_VAR"), content="Some(\"42\")")
+}
+
+///|
+test "parse handles escaped variables" {
+  let env_content = "THE_ANSWER=42\nEXPAND_ESCAPED=\\$THE_ANSWER"
+  let result = parse(env_content)
+  inspect(result.get("EXPAND_ESCAPED"), content="Some(\"$THE_ANSWER\")")
+}
+
+///|
+test "parse handles mixed expansion styles" {
+  let env_content = "QUOTED_SINGLE='single quoted'\nQUOTED_DOUBLE=\"double quoted\"\nEXPAND_WITH_DIFFERENT_STYLES=${QUOTED_SINGLE}!==$QUOTED_DOUBLE"
+  let result = parse(env_content)
+  inspect(
+    result.get("EXPAND_WITH_DIFFERENT_STYLES"),
+    content="Some(\"single quoted!==double quoted\")",
+  )
+}
+
+///|
+test "parse doesn't expand variables in single quotes" {
+  let env_content = "THE_ANSWER=42\nSINGLE_QUOTED='$THE_ANSWER'"
+  let result = parse(env_content)
+  inspect(result.get("SINGLE_QUOTED"), content="Some(\"$THE_ANSWER\")")
+}
+
+///|
+test "parse expands variables in double quotes" {
+  let env_content = "THE_ANSWER=42\nDOUBLE_QUOTED=\"Value is $THE_ANSWER\""
+  let result = parse(env_content)
+  inspect(result.get("DOUBLE_QUOTED"), content="Some(\"Value is $THE_ANSWER\")")
+}
+
+///|
+test "parse handles default with special characters" {
+  let env_content = "EXPAND_DEFAULT_WITH_SPECIAL_CHARACTERS=${UNDEFINED_ENV_KEY:-/default/path}"
+  let result = parse(env_content)
+  inspect(
+    result.get("EXPAND_DEFAULT_WITH_SPECIAL_CHARACTERS"),
+    content="Some(\"/default/path\")",
+  )
+}

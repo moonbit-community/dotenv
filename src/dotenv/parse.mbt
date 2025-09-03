@@ -4,7 +4,7 @@
 
 ///| This module provides functionality to parse .env file content into a Map.
 
-///| It handles various formats including quoted values and comments.
+///| It handles various formats including quoted values, comments, and variable expansion.
 
 ///| Helper function to trim whitespace from both ends of a string
 fn trim_string(str : String) -> String {
@@ -69,6 +69,26 @@ fn index_of_char(str : String, ch : Int) -> Int? {
   None
 }
 
+///| Find the index of a substring in a string
+fn index_of_substring(str : String, substr : String) -> Int? {
+  if substr.length() == 0 {
+    return Some(0)
+  }
+  for i = 0; i <= str.length() - substr.length(); i = i + 1 {
+    let mut found = true
+    for j = 0; j < substr.length(); j = j + 1 {
+      if str[i + j] != substr[j] {
+        found = false
+        break
+      }
+    }
+    if found {
+      return Some(i)
+    }
+  }
+  None
+}
+
 ///| Expand escape characters in a string
 fn expand_characters(str : String) -> String {
   let mut result = ""
@@ -101,6 +121,108 @@ fn expand_characters(str : String) -> String {
   result
 }
 
+///| Expand variables in unquoted values, supporting $VAR and ${VAR} and ${VAR:-default} syntax
+fn expand_variables(
+  str : String,
+  variables_map : Map[String, String],
+) -> String {
+  let mut result = ""
+  let mut i = 0
+  while i < str.length() {
+    if str[i] == 36 { // '$' = 36
+      // Check for escaped dollar sign
+      if i > 0 && str[i - 1] == 92 { // '\' = 92
+        // Remove the escape character and add the dollar sign
+        result = result.substring(start=0, end=result.length() - 1) + "$"
+        i = i + 1
+        continue
+      }
+      if i + 1 < str.length() && str[i + 1] == 123 { // '{' = 123
+        // Handle ${VAR} or ${VAR:-default} syntax
+        let mut j = i + 2
+        let mut depth = 1
+        while j < str.length() && depth > 0 {
+          if str[j] == 123 { // '{'
+            depth = depth + 1
+          } else if str[j] == 125 { // '}'
+            depth = depth - 1
+          }
+          j = j + 1
+        }
+        if depth == 0 {
+          let var_expr = str.substring(start=i + 2, end=j - 1)
+          let expanded = expand_variable_expression(var_expr, variables_map)
+          result = result + expanded
+          i = j
+        } else {
+          // Unmatched brace, treat as literal
+          result = result + "$"
+          i = i + 1
+        }
+      } else if i + 1 < str.length() && is_var_start_char(str[i + 1]) {
+        // Handle $VAR syntax
+        let mut j = i + 1
+        while j < str.length() && is_var_char(str[j]) {
+          j = j + 1
+        }
+        let var_name = str.substring(start=i + 1, end=j)
+        let value = get_variable_value(var_name, variables_map)
+        result = result + value
+        i = j
+      } else {
+        // Dollar sign not followed by valid variable, treat as literal
+        result = result + "$"
+        i = i + 1
+      }
+    } else {
+      result = result + str.substring(start=i, end=i + 1)
+      i = i + 1
+    }
+  }
+  result
+}
+
+///| Expand a variable expression (contents inside ${})
+fn expand_variable_expression(
+  expr : String,
+  variables_map : Map[String, String],
+) -> String {
+  // Check for default value syntax: VAR:-default
+  match index_of_substring(expr, ":-") {
+    Some(pos) => {
+      let var_name = expr.substring(start=0, end=pos)
+      let default_value = expr.substring(start=pos + 2)
+      let expanded_default = expand_variables(default_value, variables_map)
+      match variables_map.get(var_name) {
+        Some(value) => value
+        None => expanded_default
+      }
+    }
+    None => get_variable_value(expr, variables_map)
+  }
+}
+
+///| Get the value of a variable, checking both the variables map and simulated environment
+fn get_variable_value(
+  var_name : String,
+  variables_map : Map[String, String],
+) -> String {
+  match variables_map.get(var_name) {
+    Some(value) => value
+    None => "" // In a real implementation, this would check Deno.env.get(var_name)
+  }
+}
+
+///| Check if a character can start a variable name
+fn is_var_start_char(ch : Int) -> Bool {
+  is_alpha(ch) || ch == 95 // letter or underscore
+}
+
+///| Check if a character can be part of a variable name
+fn is_var_char(ch : Int) -> Bool {
+  is_alnum(ch) || ch == 95 // letter, digit, or underscore
+}
+
 ///| Check if key matches valid identifier pattern
 fn is_valid_key(key : String) -> Bool {
   if key.length() == 0 {
@@ -130,14 +252,15 @@ fn is_alnum(ch : Int) -> Bool {
 }
 
 ///| Parse the value part of a key-value pair, handling quotes and escapes
-fn parse_value(value_part : String) -> String {
+fn parse_value(value_part : String) -> (String, Bool) {
   let trimmed = trim_string(value_part)
 
   // Handle single quotes - no interpolation
   if starts_with(trimmed, "'") &&
     ends_with(trimmed, "'") &&
     trimmed.length() >= 2 {
-    return trimmed.substring(start=1, end=trimmed.length() - 1)
+    let content = trimmed.substring(start=1, end=trimmed.length() - 1)
+    return (content, false)
   }
 
   // Handle double quotes - with interpolation
@@ -145,18 +268,19 @@ fn parse_value(value_part : String) -> String {
     ends_with(trimmed, "\"") &&
     trimmed.length() >= 2 {
     let content = trimmed.substring(start=1, end=trimmed.length() - 1)
-    return expand_characters(content)
+    return (expand_characters(content), false)
   }
 
   // Unquoted value - trim and handle comments
-  match index_of_char(trimmed, 35) { // '#' = 35
+  let value = match index_of_char(trimmed, 35) { // '#' = 35
     Some(pos) => trim_string(trimmed.substring(start=0, end=pos))
     None => trimmed
   }
+  (value, true) // true indicates this is unquoted and needs variable expansion
 }
 
 ///| Parse a single line and extract key-value pair
-fn parse_line(line : String) -> (String, String)? {
+fn parse_line(line : String) -> (String, String, Bool)? {
   let trimmed = trim_string(line)
 
   // Skip empty lines and comments
@@ -184,8 +308,8 @@ fn parse_line(line : String) -> (String, String)? {
         )
         return None
       }
-      let value = parse_value(value_part)
-      Some((key, value))
+      let (value, needs_expansion) = parse_value(value_part)
+      Some((key, value, needs_expansion))
     }
     None => None
   }
@@ -216,11 +340,36 @@ fn parse_line(line : String) -> (String, String)? {
 ///| @returns The parsed environment variables as a Map
 pub fn parse(text : String) -> Map[String, String] {
   let env : Map[String, String] = Map::new()
+  let keys_for_expand_check : Array[String] = []
   let lines = text.split("\n")
+
+  // First pass: parse all lines and collect keys that need expansion
   for line_view in lines {
     let line = line_view.to_string() // Convert StringView to String
     match parse_line(line) {
-      Some((key, value)) => env[key] = value
+      Some((key, value, needs_expansion)) => {
+        env[key] = value
+        if needs_expansion {
+          keys_for_expand_check.push(key)
+        }
+      }
+      None => continue
+    }
+  }
+
+  // Second pass: expand variables in unquoted values
+  let variables_map : Map[String, String] = Map::new()
+  for entry in env {
+    let (key, value) = entry
+    variables_map[key] = value
+  }
+  for key in keys_for_expand_check {
+    match env.get(key) {
+      Some(value) => {
+        let expanded_value = expand_variables(value, variables_map)
+        env[key] = expanded_value
+        variables_map[key] = expanded_value // Update the map with expanded value
+      }
       None => continue
     }
   }
