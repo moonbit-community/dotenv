@@ -2,3 +2,7 @@
 target/
 .mooncakes/
 .moonagent/
+
+.auto-coder/
+/actions/
+/output.txt

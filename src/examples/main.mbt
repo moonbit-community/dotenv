@@ -191,8 +191,31 @@ pub fn advanced_features_example() -> Unit {
   }
 }
 
+///| Run async demos
+pub fn run_async_demos() -> Unit {
+  // 运行异步文件操作演示
+  @async.with_event_loop(fn(root) {
+    try {
+      println("\n🌙 异步文件操作演示")
+      println("====================================")
+
+      // 运行基础演示
+      @fileops.run_all_demos()
+
+      // 运行应用示例
+      run_async_examples()
+      println("\n✨ 异步操作演示完成!")
+    } catch {
+      err => println("❌ 异步操作出错: \{err}")
+    }
+  }) catch {
+    err => println("❌ 事件循环出错: \{err}")
+  }
+}
+
 ///| Main function demonstrating all examples
 fn main {
+  // 运行同步示例
   println("🌙 MoonBit Dotenv Library - Feature Showcase")
   println("============================================")
   basic_example()
@@ -212,4 +235,8 @@ fn main {
   println("  • Escape sequences and literal characters")
   println("  • Stringification back to .env format")
   println("  • Flexible loading configurations")
+
+  // 运行异步演示
+  println("\n💡 现在运行异步文件操作演示...")
+  run_async_demos()
 }

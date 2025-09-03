@@ -1,6 +1,9 @@
 {
   "is_main": true,
   "import": [
-    "username/dotenv/dotenv"
-  ]
+    "username/dotenv/dotenv",
+    "username/dotenv/fileops",
+    "moonbitlang/async"
+  ],
+  "supported-targets": ["native"]
 }
