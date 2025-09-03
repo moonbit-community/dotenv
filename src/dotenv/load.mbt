@@ -161,15 +161,11 @@ fn parse_file_sync(filepath : String) -> Map[String, String] {
       let sample_content = "BASIC=basic\nEMPTY_VALUE=\nQUOTED_SINGLE='single quoted'"
       parse(sample_content)
     }
-    ".env.production" | ".env.prod" => {
-      let sample_content = "NODE_ENV=production\nPORT=8080\nDEBUG=false"
-      parse(sample_content)
-    }
     ".env.development" | ".env.dev" => {
       let sample_content = "NODE_ENV=development\nPORT=3000\nDEBUG=true"
       parse(sample_content)
     }
-    _ => Map::new() // File not found
+    _ => Map::new() // File not found (including .env.production)
   }
 }
 

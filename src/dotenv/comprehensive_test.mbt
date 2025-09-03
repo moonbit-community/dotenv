@@ -1,10 +1,9 @@
 ///| Comprehensive tests based on Deno std library test suite
 
 ///| These tests ensure our MoonBit implementation matches the behavior of the reference implementation
-
 test "parse handles .env.test file completely" {
   // This content matches the .env.test file from Deno std library testdata
-  let test_dotenv = 
+  let test_dotenv =
     #|BASIC=basic
     #|
     #|AFTER_EMPTY=empty
@@ -53,7 +52,6 @@ test "parse handles .env.test file completely" {
     #|
     #|export EXPORT_IS_IGNORED='export is ignored'
     #|
-
   let load = parse(test_dotenv)
 
   // Should parse 26 valid keys (excluding invalid ones like 1INVALID)
@@ -84,8 +82,14 @@ test "parse handles .env.test file completely" {
   inspect(load.get("WHITESPACE_DOUBLE"), content="Some(\"    whitespace   \")")
 
   // Single quotes preserve literal content (no expansion)
-  inspect(load.get("MULTILINE_SINGLE_QUOTE1"), content="Some(\"hello\\nworld\")")
-  inspect(load.get("MULTILINE_SINGLE_QUOTE2"), content="Some(\"hello\\r\\nworld\")")
+  inspect(
+    load.get("MULTILINE_SINGLE_QUOTE1"),
+    content="Some(\"hello\\\\nworld\")",
+  )
+  inspect(
+    load.get("MULTILINE_SINGLE_QUOTE2"),
+    content="Some(\"hello\\\\r\\\\nworld\")",
+  )
 
   // Space and indentation handling
   inspect(load.get("VAR_WITH_SPACE"), content="Some(\"var with space\")")
@@ -104,13 +108,14 @@ test "parse handles .env.test file completely" {
   // Multiline values
   let private_key_single = load.get("PRIVATE_KEY_SINGLE_QUOTED")
   match private_key_single {
-    Some(value) => inspect(value.contains("BEGIN RSA PRIVATE KEY"), content="true")
+    Some(value) =>
+      inspect(value.contains("BEGIN RSA PRIVATE KEY"), content="true")
     None => inspect(false, content="true")
   }
-  
   let private_key_double = load.get("PRIVATE_KEY_DOUBLE_QUOTED")
   match private_key_double {
-    Some(value) => inspect(value.contains("BEGIN RSA PRIVATE KEY"), content="true")
+    Some(value) =>
+      inspect(value.contains("BEGIN RSA PRIVATE KEY"), content="true")
     None => inspect(false, content="true")
   }
 
@@ -254,7 +259,7 @@ test "parse expands variables comprehensively" {
 ///|
 test "parse handles edge cases properly" {
   // Test various edge cases that could break parsing
-  let edge_cases = 
+  let edge_cases =
     #|# This is a comment
     #|EMPTY_LINE_ABOVE=value
     #|
@@ -277,16 +282,17 @@ test "parse handles edge cases properly" {
     #|# Very long line
     #|LONG_VALUE=this is a very long value that contains many words and should still be parsed correctly even though it spans what might be considered a long line in some contexts
     #|
-
   let load = parse(edge_cases)
   inspect(load.get("EMPTY_LINE_ABOVE"), content="Some(\"value\")")
   inspect(load.get("AFTER_MULTIPLE_EMPTY"), content="Some(\"test\")")
-  inspect(load.get("URL"), content="Some(\"https://example.com:8080/path?param=value&other=val\")")
+  inspect(
+    load.get("URL"),
+    content="Some(\"https://example.com:8080/path?param=value&other=val\")",
+  )
   inspect(load.get("SPACE_BEFORE_EQUALS"), content="Some(\"value\")")
   inspect(load.get("SPACE_AFTER_EQUALS"), content="Some(\"value\")")
   inspect(load.get("SPACE_BOTH"), content="Some(\"value\")")
   inspect(load.get("UNICODE_VALUE"), content="Some(\"Hello 世界 🌍\")")
-  
   let long_value = load.get("LONG_VALUE")
   match long_value {
     Some(value) => inspect(value.contains("very long value"), content="true")
