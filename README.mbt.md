@@ -5,7 +5,11 @@ A MoonBit library for parsing and stringifying `.env` files, migrated from the D
 ## Features
 
 - 🔧 **Parse .env files** - Convert .env file content into a Map
-- 📝 **Stringify Maps** - Convert Maps back to .env file format  
+- 📝 **Stringify Maps** - Convert Maps back to .env file format
+- 🚀 **Variable expansion** - Support for `$VAR` and `${VAR}` syntax
+- ⚙️ **Default values** - Support for `${VAR:-default}` syntax
+- 🛡️ **Escaped variables** - Support for `\$VAR` to prevent expansion
+- 🔄 **Recursive expansion** - Variables can reference other variables
 - 🎯 **Type safe** - Full MoonBit type safety
 - 🧪 **Well tested** - Comprehensive test suite
 - 📚 **Well documented** - Clear API documentation and examples
@@ -82,7 +86,7 @@ let env = @dotenv.load_from_string(content, options~)
 
 ## Supported .env Format
 
-The parser supports the standard .env file format:
+The parser supports the standard .env file format with variable expansion:
 
 ```bash
 # Comments start with #
@@ -101,6 +105,21 @@ MULTILINE="line1\nline2\nline3"
 # Values with special characters
 SPECIAL_CHARS='value with spaces and !@#'
 
+# Variable expansion (only in unquoted values)
+NAME=MoonBit
+GREETING=Hello $NAME
+FULL_GREETING=${GREETING}, welcome!
+
+# Default values
+PORT=${PORT:-8080}
+DATABASE_URL=${DB_URL:-sqlite://./default.db}
+
+# Nested defaults
+LOG_LEVEL=${LOG_LEVEL:-${DEFAULT_LOG_LEVEL:-info}}
+
+# Escaped variables (prevent expansion)
+ESCAPED_VAR=\$VERSION
+
 # Export syntax (ignored)
 export EXPORTED_VAR=value
 
@@ -115,7 +134,13 @@ SPACED_VALUE = spaced value
 - Keys must match the pattern `/^[a-zA-Z_][a-zA-Z0-9_]*$/`
 - Values can be unquoted, single-quoted, or double-quoted
 - Double-quoted values support escape sequences (`\n`, `\r`, `\t`)
-- Single-quoted values are literal (no escape sequences)
+- Single-quoted values are literal (no escape sequences or variable expansion)
+- **Variable expansion** only occurs in unquoted values:
+  - `$VAR` expands to the value of `VAR`
+  - `${VAR}` expands to the value of `VAR`
+  - `${VAR:-default}` expands to `VAR` if defined, otherwise `default`
+  - `\$VAR` prevents expansion (escaped)
+- Recursive expansion is supported (variables can reference other variables)
 - Whitespace around keys and unquoted values is trimmed
 - The `export` prefix is ignored
 
@@ -150,6 +175,40 @@ let original = "GREETING=hello world\nNAME=MoonBit"
 let parsed = @dotenv.parse(original)
 let back_to_string = @dotenv.stringify(parsed)
 // Values are preserved through the round trip
+```
+
+### Variable Expansion
+
+```moonbit
+let env_content = 
+  #|# Base configuration
+  #|APP_NAME=MoonBit Demo
+  #|VERSION=1.0.0
+  #|ENV=development
+  #|
+  #|# Variable expansion
+  #|APP_TITLE=$APP_NAME v$VERSION
+  #|FULL_INFO=${APP_NAME} version ${VERSION} (${ENV})
+  #|
+  #|# Default values
+  #|DATABASE_URL=${DB_URL:-sqlite://./default.db}
+  #|PORT=${PORT:-8080}
+  #|
+  #|# Nested defaults
+  #|LOG_LEVEL=${LOG_LEVEL:-${DEFAULT_LOG_LEVEL:-info}}
+  #|
+  #|# Escaped variables
+  #|ESCAPED=\$VERSION
+  #|
+
+let parsed = @dotenv.parse(env_content)
+// Results in:
+// APP_TITLE = "MoonBit Demo v1.0.0"
+// FULL_INFO = "MoonBit Demo version 1.0.0 (development)"
+// DATABASE_URL = "sqlite://./default.db" (using default)
+// PORT = "8080" (using default)
+// LOG_LEVEL = "info" (using nested default)
+// ESCAPED = "$VERSION" (literal, not expanded)
 ```
 
 ### Error Handling
@@ -200,9 +259,21 @@ src/
 This MoonBit implementation has some differences from the original Deno version:
 
 1. **No file system access** - Functions take content strings instead of file paths
-2. **No process environment** - The `export` option is for API compatibility
-3. **Simplified variable expansion** - Full variable expansion is not yet implemented
+2. **No process environment** - The `export` option is for API compatibility (no global process environment)
+3. **Variable expansion** - Full variable expansion is implemented including `$VAR`, `${VAR}`, `${VAR:-default}`, and escaped variables
 4. **Different error handling** - Uses MoonBit's type system instead of exceptions
+
+## Implemented Features from Deno std
+
+✅ **Complete**: Variable expansion with `$VAR` and `${VAR}` syntax  
+✅ **Complete**: Default values with `${VAR:-default}` syntax  
+✅ **Complete**: Escaped variables with `\$VAR` syntax  
+✅ **Complete**: Recursive variable expansion  
+✅ **Complete**: Single and double quoted values  
+✅ **Complete**: Multi-line values and escape sequences  
+✅ **Complete**: Comments and empty lines  
+✅ **Complete**: Export prefix handling  
+✅ **Complete**: Comprehensive parsing and stringification
 
 ## Contributing
 
