@@ -1,9 +1,6 @@
 {
   "is_main": true,
   "import": [
-    {
-      "path": "username/dotenv/dotenv",
-      "alias": "dotenv"
-    }
+    "username/dotenv/dotenv"
   ]
 }
