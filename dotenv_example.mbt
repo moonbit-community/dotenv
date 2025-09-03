@@ -61,8 +61,80 @@ pub fn expansion_example() -> Unit {
     #|# Mixed expansion styles
     #|MIXED_STYLE=${APP_NAME} on port $PORT
     #|
+    #|# Recursive expansion
+    #|RECURSIVE_VAR=$FULL_APP_INFO
+    #|
+    #|# Complex default with special characters
+    #|CONFIG_PATH=${CONFIG_PATH:-/etc/app/config.json}
+    #|
   let parsed = @dotenv.parse(env_content)
   println("Variable expansion results:")
+  for entry in parsed {
+    let (key, value) = entry
+    println("  \{key} = \{value}")
+  }
+}
+
+///| Example showing multiline values and complex quoting
+pub fn multiline_example() -> Unit {
+  println("\n=== Multiline and Complex Quoting Example ===")
+  let env_content =
+    #|# Single quoted multiline (preserves literal backslashes)
+    #|SSH_PRIVATE_KEY_LITERAL='
+    #|-----BEGIN RSA PRIVATE KEY-----
+    #|MIIEpAIBAAKCAQEA7h6+JH1...
+    #|...example key content...
+    #|-----END RSA PRIVATE KEY-----
+    #|'
+    #|
+    #|# Double quoted multiline (expands escape sequences)
+    #|LOG_MESSAGE="Line 1\nLine 2\nLine 3"
+    #|
+    #|# JSON configuration in single quotes (preserves structure)
+    #|JSON_CONFIG='{"database": {"host": "localhost", "port": 5432}}'
+    #|
+    #|# Values with special characters
+    #|SPECIAL_CHARS='!@#$%^&*()_+-=[]{}|;:,.<>?'
+    #|
+    #|# Whitespace handling
+    #|PRESERVED_SPACES='    leading and trailing spaces    '
+    #|TRIMMED_SPACES=    this will be trimmed    
+    #|
+    #|# Comments are ignored
+    #|VALID_VAR=value # this comment is ignored
+    #|# This entire line is a comment
+    #|
+  let parsed = @dotenv.parse(env_content)
+  println("Multiline and complex quoting results:")
+  for entry in parsed {
+    let (key, value) = entry
+    println("  \{key} = \{value}")
+  }
+}
+
+///| Example showing variable expansion in double quotes
+pub fn double_quote_expansion_example() -> Unit {
+  println("\n=== Double Quote Variable Expansion Example ===")
+  let env_content =
+    #|# Base variables
+    #|USERNAME=admin
+    #|HOST=localhost
+    #|PORT=8080
+    #|
+    #|# Single quotes prevent expansion
+    #|SINGLE_QUOTED='$USERNAME@$HOST:$PORT'
+    #|
+    #|# Double quotes enable expansion
+    #|DOUBLE_QUOTED="$USERNAME@$HOST:$PORT"
+    #|
+    #|# Mixed with text
+    #|DATABASE_DSN="postgresql://$USERNAME:password@$HOST:5432/myapp"
+    #|
+    #|# Expansion with braces
+    #|SERVER_INFO="Server: ${HOST}:${PORT}"
+    #|
+  let parsed = @dotenv.parse(env_content)
+  println("Double quote expansion results:")
   for entry in parsed {
     let (key, value) = entry
     println("  \{key} = \{value}")
@@ -148,6 +220,8 @@ fn main {
   println("==============================")
   parse_example()
   expansion_example()
+  multiline_example()
+  double_quote_expansion_example()
   stringify_example()
   round_trip_example()
   load_from_string_example()

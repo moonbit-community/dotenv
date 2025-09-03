@@ -34,10 +34,32 @@ fn main {
   println(stringified)
 
   // Example 4: Load from string with options
-  let options = @dotenv.LoadOptions::{ export_to_env: true }
+  let options = @dotenv.LoadOptions::with_export()
   let loaded = @dotenv.load_from_string(env_content, options~)
-  println("\n4. Loaded with options (export_to_env=true):")
+  println("\n4. Loaded with options (export_vars=true):")
   for entry in loaded {
+    let (key, value) = entry
+    println("   \{key} = \{value}")
+  }
+
+  // Example 5: Multiline and complex quoting
+  let multiline_content =
+    #|# Multiline value in single quotes
+    #|SSH_KEY='
+    #|-----BEGIN RSA PRIVATE KEY-----
+    #|example key content...
+    #|-----END RSA PRIVATE KEY-----
+    #|'
+    #|
+    #|# Double quoted with escape sequences
+    #|LOG_MSG="Line 1\nLine 2\nLine 3"
+    #|
+    #|# JSON in single quotes (preserves structure)  
+    #|CONFIG='{"host": "localhost", "port": 5432}'
+    #|
+  let multiline_parsed = @dotenv.parse(multiline_content)
+  println("\n5. Multiline and complex quoting:")
+  for entry in multiline_parsed {
     let (key, value) = entry
     println("   \{key} = \{value}")
   }

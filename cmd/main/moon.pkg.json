@@ -1,8 +1,8 @@
 {
-  "is-main": true,
+  "is_main": true,
   "import": [
     {
-      "path": "username/dotenv/src/dotenv",
+      "path": "username/dotenv/dotenv",
       "alias": "dotenv"
     }
   ]
