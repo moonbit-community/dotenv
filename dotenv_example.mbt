@@ -9,8 +9,7 @@
 ///| Example function showing basic dotenv parsing
 pub fn parse_example() -> Unit {
   println("=== Dotenv Parse Example ===")
-  
-  let env_content = 
+  let env_content =
     #|# Database configuration
     #|DB_HOST=localhost
     #|DB_PORT=5432
@@ -26,10 +25,44 @@ pub fn parse_example() -> Unit {
     #|DEBUG=true
     #|VERBOSE_LOGGING=false
     #|
-  
   let parsed = @dotenv.parse(env_content)
-  
   println("Parsed \{parsed.size()} environment variables:")
+  for entry in parsed {
+    let (key, value) = entry
+    println("  \{key} = \{value}")
+  }
+}
+
+///| Example function showing variable expansion features
+pub fn expansion_example() -> Unit {
+  println("\n=== Variable Expansion Example ===")
+  let env_content =
+    #|# Base configuration
+    #|APP_NAME=MoonBit Dotenv Demo
+    #|VERSION=1.0.0
+    #|ENV=development
+    #|
+    #|# Variable expansion with $VAR syntax
+    #|APP_TITLE=$APP_NAME v$VERSION
+    #|
+    #|# Variable expansion with ${VAR} syntax
+    #|FULL_APP_INFO=${APP_NAME} version ${VERSION} (${ENV})
+    #|
+    #|# Default values with ${VAR:-default} syntax
+    #|DATABASE_URL=${DATABASE_URL:-sqlite://./default.db}
+    #|PORT=${PORT:-8080}
+    #|
+    #|# Nested default values
+    #|LOG_LEVEL=${LOG_LEVEL:-${DEFAULT_LOG_LEVEL:-info}}
+    #|
+    #|# Escaped variables (should not expand)
+    #|ESCAPED_VAR=\$VERSION
+    #|
+    #|# Mixed expansion styles
+    #|MIXED_STYLE=${APP_NAME} on port $PORT
+    #|
+  let parsed = @dotenv.parse(env_content)
+  println("Variable expansion results:")
   for entry in parsed {
     let (key, value) = entry
     println("  \{key} = \{value}")
@@ -114,6 +147,7 @@ fn main {
   println("MoonBit Dotenv Library Examples")
   println("==============================")
   parse_example()
+  expansion_example()
   stringify_example()
   round_trip_example()
   load_from_string_example()

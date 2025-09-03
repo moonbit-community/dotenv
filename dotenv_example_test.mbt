@@ -24,6 +24,12 @@ test "load_from_string_example runs without error" {
 }
 
 ///|
+test "expansion_example runs without error" {
+  expansion_example()
+  inspect(true, content="true")
+}
+
+///|
 test "demo_example runs without error" {
   demo_example()
   inspect(true, content="true")

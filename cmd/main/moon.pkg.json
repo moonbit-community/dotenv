@@ -2,8 +2,8 @@
   "is-main": true,
   "import": [
     {
-      "path": "username/hello",
-      "alias": "lib"
+      "path": "username/dotenv/src/dotenv",
+      "alias": "dotenv"
     }
   ]
 }

@@ -10,6 +10,22 @@
 
 ///|
 
+///| Supports advanced features including:
+
+///| - Variable expansion with $VAR and ${VAR} syntax
+
+///| - Default values with ${VAR:-default} syntax
+
+///| - Escaped variables with \$VAR syntax
+
+///| - Recursive variable expansion
+
+///| - Single and double quoted values
+
+///| - Multi-line values and comments
+
+///|
+
 ///| Note: The key needs to match the pattern /^[a-zA-Z_][a-zA-Z0-9_]*$/.
 
 ///|
@@ -29,6 +45,20 @@
 ///| let back_to_string = stringify(env)
 
 ///| // Returns .env formatted string
+
+///| ```
+
+///|
+
+///| @example Variable expansion
+
+///| ```moonbit
+
+///| let env_content = "NAME=MoonBit\nGREETING=Hello $NAME\nDEFAULT_PORT=${PORT:-8080}"
+
+///| let env = parse(env_content)
+
+///| // Returns: {"NAME": "MoonBit", "GREETING": "Hello MoonBit", "DEFAULT_PORT": "8080"}
 
 ///| ```
 
