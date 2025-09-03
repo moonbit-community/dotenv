@@ -141,6 +141,14 @@ test "parse handles escaped variables" {
 }
 
 ///|
+test "parse handles escaped variables with backslash correctly" {
+  let env_content = "THE_ANSWER=42\nESCAPED1=\\$THE_ANSWER\nESCAPED2=prefix \\$THE_ANSWER suffix"
+  let result = parse(env_content)
+  inspect(result.get("ESCAPED1"), content="Some(\"$THE_ANSWER\")")
+  inspect(result.get("ESCAPED2"), content="Some(\"prefix $THE_ANSWER suffix\")")
+}
+
+///|
 test "parse handles mixed expansion styles" {
   let env_content = "QUOTED_SINGLE='single quoted'\nQUOTED_DOUBLE=\"double quoted\"\nEXPAND_WITH_DIFFERENT_STYLES=${QUOTED_SINGLE}!==$QUOTED_DOUBLE"
   let result = parse(env_content)

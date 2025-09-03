@@ -45,6 +45,8 @@ fn escape_quotes(str : String, quote : String) -> String {
   for i = 0; i < str.length(); i = i + 1 {
     if str[i] == quote_code {
       result = result + "\\" + quote
+    } else if str[i] == 92 { // backslash
+      result = result + "\\\\"
     } else {
       result = result + str.substring(start=i, end=i + 1)
     }
@@ -58,6 +60,8 @@ fn escape_newlines(str : String) -> String {
   for i = 0; i < str.length(); i = i + 1 {
     if str[i] == 10 { // '\n' = 10
       result = result + "\\n"
+    } else if str[i] == 13 { // '\r' = 13
+      result = result + "\\r"
     } else {
       result = result + str.substring(start=i, end=i + 1)
     }

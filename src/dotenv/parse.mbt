@@ -102,14 +102,12 @@ fn expand_variables(
   let mut result = ""
   let mut i = 0
   while i < str.length() {
-    if str[i] == 36 { // '$' = 36
-      // Check for escaped dollar sign
-      if i > 0 && str[i - 1] == 92 { // '\' = 92
-        // Remove the escape character and add the dollar sign
-        result = result.substring(start=0, end=result.length() - 1) + "$"
-        i = i + 1
-        continue
-      }
+    if str[i] == 92 && i + 1 < str.length() && str[i + 1] == 36 { // \$ = escaped dollar
+      // Handle escaped dollar sign - add literal $ and skip the escape
+      result = result + "$"
+      i = i + 2
+      continue
+    } else if str[i] == 36 { // '$' = 36
       if i + 1 < str.length() && str[i + 1] == 123 { // '{' = 123
         // Handle ${VAR} or ${VAR:-default} syntax
         let mut j = i + 2
@@ -394,25 +392,32 @@ fn parse_value_at_pos(text : String, start_pos : Int) -> (String, Bool, Int)? {
     return Some(("", true, i))
   }
 
-  // Handle single quotes
+  // Handle single quotes (including multiline)
   if text[i] == 39 { // '\'' = 39
     i = i + 1
-    let value_start = i
+    let mut content = ""
 
-    // Find closing quote
+    // Find closing quote, allowing for newlines
     while i < text.length() && text[i] != 39 {
+      content = content + text.substring(start=i, end=i + 1)
       i = i + 1
     }
     if i >= text.length() {
       return None // Unclosed quote
     }
-    let content = text.substring(start=value_start, end=i)
     i = i + 1 // Skip closing quote
 
-    // Skip to end of line
-    while i < text.length() && text[i] != 10 && text[i] != 13 { // '\n' = 10, '\r' = 13
+    // Skip to end of line or find next non-whitespace
+    while i < text.length() && (text[i] == 32 || text[i] == 9) { // space or tab
       i = i + 1
     }
+    // Skip past comments
+    if i < text.length() && text[i] == 35 { // '#'
+      while i < text.length() && text[i] != 10 && text[i] != 13 {
+        i = i + 1
+      }
+    }
+    // Skip line ending
     if i < text.length() &&
       text[i] == 13 &&
       i + 1 < text.length() &&
@@ -424,26 +429,38 @@ fn parse_value_at_pos(text : String, start_pos : Int) -> (String, Bool, Int)? {
     return Some((content, false, i)) // Single quotes don't expand variables
   }
 
-  // Handle double quotes  
+  // Handle double quotes (including multiline)
   if text[i] == 34 { // '\"' = 34
     i = i + 1
-    let value_start = i
+    let mut content = ""
 
-    // Find closing quote
+    // Find closing quote, allowing for newlines and escaped quotes
     while i < text.length() && text[i] != 34 {
-      i = i + 1
+      if text[i] == 92 && i + 1 < text.length() && text[i + 1] == 34 { // Escaped quote \"
+        content = content + "\""
+        i = i + 2
+      } else {
+        content = content + text.substring(start=i, end=i + 1)
+        i = i + 1
+      }
     }
     if i >= text.length() {
       return None // Unclosed quote
     }
-    let content = text.substring(start=value_start, end=i)
     let expanded_content = expand_characters(content)
     i = i + 1 // Skip closing quote
 
-    // Skip to end of line
-    while i < text.length() && text[i] != 10 && text[i] != 13 { // '\n' = 10, '\r' = 13
+    // Skip to end of line or find next non-whitespace
+    while i < text.length() && (text[i] == 32 || text[i] == 9) { // space or tab
       i = i + 1
     }
+    // Skip past comments
+    if i < text.length() && text[i] == 35 { // '#'
+      while i < text.length() && text[i] != 10 && text[i] != 13 {
+        i = i + 1
+      }
+    }
+    // Skip line ending
     if i < text.length() &&
       text[i] == 13 &&
       i + 1 < text.length() &&
