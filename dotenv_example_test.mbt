@@ -1,7 +1,7 @@
 ///| Tests for the dotenv examples
-test "parse_example runs without error" {
+test "basic_example runs without error" {
   // Just verify the function runs without throwing exceptions
-  parse_example()
+  basic_example()
   inspect(true, content="true")
 }
 
@@ -18,8 +18,8 @@ test "round_trip_example runs without error" {
 }
 
 ///|
-test "load_from_string_example runs without error" {
-  load_from_string_example()
+test "load_example runs without error" {
+  load_example()
   inspect(true, content="true")
 }
 
@@ -30,8 +30,8 @@ test "expansion_example runs without error" {
 }
 
 ///|
-test "demo_example runs without error" {
-  demo_example()
+test "multiline_example runs without error" {
+  multiline_example()
   inspect(true, content="true")
 }
 
@@ -42,12 +42,12 @@ test "examples produce valid results" {
   let parsed = @dotenv.parse(env_content)
   inspect(parsed.get("DB_HOST"), content="Some(\"localhost\")")
   inspect(parsed.get("DB_PORT"), content="Some(\"5432\")")
-  
+
   // Test variable expansion
   let expansion_content = "APP_NAME=MoonBit\nVERSION=1.0.0\nAPP_TITLE=$APP_NAME v$VERSION"
   let expanded = @dotenv.parse(expansion_content)
   inspect(expanded.get("APP_TITLE"), content="Some(\"MoonBit v1.0.0\")")
-  
+
   // Test stringification
   let env : Map[String, String] = Map::new()
   env["TEST"] = "value"

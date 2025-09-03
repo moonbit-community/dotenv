@@ -1,14 +1,20 @@
-///| MoonBit Dotenv Example
+///| MoonBit Dotenv Library Example
 
 ///|
 
-///| This file demonstrates how to use the MoonBit dotenv module to parse
+///| This file demonstrates key features of the MoonBit dotenv module:
 
-///| and stringify environment variables in .env file format.
+///| - Basic parsing and stringification
+
+///| - Variable expansion with different syntaxes
+
+///| - Multiline values and complex quoting
+
+///| - Load options and configurations
 
 ///| Example function showing basic dotenv parsing
-pub fn parse_example() -> Unit {
-  println("=== Dotenv Parse Example ===")
+pub fn basic_example() -> Unit {
+  println("=== Basic Dotenv Example ===")
   let env_content =
     #|# Database configuration
     #|DB_HOST=localhost
@@ -16,10 +22,6 @@ pub fn parse_example() -> Unit {
     #|DB_NAME=myapp
     #|DB_USER=admin
     #|DB_PASSWORD=super secret password
-    #|
-    #|# API configuration  
-    #|API_KEY=abc123-def456-ghi789
-    #|API_TIMEOUT=30
     #|
     #|# Feature flags
     #|DEBUG=true
@@ -58,15 +60,6 @@ pub fn expansion_example() -> Unit {
     #|# Escaped variables (should not expand)
     #|ESCAPED_VAR=\$VERSION
     #|
-    #|# Mixed expansion styles
-    #|MIXED_STYLE=${APP_NAME} on port $PORT
-    #|
-    #|# Recursive expansion
-    #|RECURSIVE_VAR=$FULL_APP_INFO
-    #|
-    #|# Complex default with special characters
-    #|CONFIG_PATH=${CONFIG_PATH:-/etc/app/config.json}
-    #|
   let parsed = @dotenv.parse(env_content)
   println("Variable expansion results:")
   for entry in parsed {
@@ -79,8 +72,8 @@ pub fn expansion_example() -> Unit {
 pub fn multiline_example() -> Unit {
   println("\n=== Multiline and Complex Quoting Example ===")
   let env_content =
-    #|# Single quoted multiline (preserves literal backslashes)
-    #|SSH_PRIVATE_KEY_LITERAL='
+    #|# Single quoted multiline (preserves literal content)
+    #|SSH_PRIVATE_KEY='
     #|-----BEGIN RSA PRIVATE KEY-----
     #|MIIEpAIBAAKCAQEA7h6+JH1...
     #|...example key content...
@@ -90,51 +83,11 @@ pub fn multiline_example() -> Unit {
     #|# Double quoted multiline (expands escape sequences)
     #|LOG_MESSAGE="Line 1\nLine 2\nLine 3"
     #|
-    #|# JSON configuration in single quotes (preserves structure)
+    #|# JSON configuration in single quotes
     #|JSON_CONFIG='{"database": {"host": "localhost", "port": 5432}}'
-    #|
-    #|# Values with special characters
-    #|SPECIAL_CHARS='!@#$%^&*()_+-=[]{}|;:,.<>?'
-    #|
-    #|# Whitespace handling
-    #|PRESERVED_SPACES='    leading and trailing spaces    '
-    #|TRIMMED_SPACES=    this will be trimmed    
-    #|
-    #|# Comments are ignored
-    #|VALID_VAR=value # this comment is ignored
-    #|# This entire line is a comment
     #|
   let parsed = @dotenv.parse(env_content)
   println("Multiline and complex quoting results:")
-  for entry in parsed {
-    let (key, value) = entry
-    println("  \{key} = \{value}")
-  }
-}
-
-///| Example showing variable expansion in double quotes
-pub fn double_quote_expansion_example() -> Unit {
-  println("\n=== Double Quote Variable Expansion Example ===")
-  let env_content =
-    #|# Base variables
-    #|USERNAME=admin
-    #|HOST=localhost
-    #|PORT=8080
-    #|
-    #|# Single quotes prevent expansion
-    #|SINGLE_QUOTED='$USERNAME@$HOST:$PORT'
-    #|
-    #|# Double quotes enable expansion
-    #|DOUBLE_QUOTED="$USERNAME@$HOST:$PORT"
-    #|
-    #|# Mixed with text
-    #|DATABASE_DSN="postgresql://$USERNAME:password@$HOST:5432/myapp"
-    #|
-    #|# Expansion with braces
-    #|SERVER_INFO="Server: ${HOST}:${PORT}"
-    #|
-  let parsed = @dotenv.parse(env_content)
-  println("Double quote expansion results:")
   for entry in parsed {
     let (key, value) = entry
     println("  \{key} = \{value}")
@@ -185,7 +138,7 @@ pub fn round_trip_example() -> Unit {
 }
 
 ///| Example using the load_from_string function
-pub fn load_from_string_example() -> Unit {
+pub fn load_example() -> Unit {
   println("\n=== Load From String Example ===")
   let env_content = "DATABASE_URL=postgres://user:pass@localhost/db\nREDIS_URL=redis://localhost:6379"
 
@@ -197,7 +150,7 @@ pub fn load_from_string_example() -> Unit {
     println("  \{key} = \{value}")
   }
 
-  // Load with export option (simulated)
+  // Load with export option
   let options = @dotenv.LoadOptions::with_export()
   let config2 = @dotenv.load_from_string(env_content, options~)
   println("\nLoaded with export option:")
@@ -207,24 +160,15 @@ pub fn load_from_string_example() -> Unit {
   }
 }
 
-///| Run the demo function from the dotenv module
-pub fn demo_example() -> Unit {
-  println("\n=== Demo Function Example ===")
-  let demo_result = @dotenv.demo()
-  println(demo_result)
-}
-
 ///| Main function to run all examples
 fn main {
   println("MoonBit Dotenv Library Examples")
   println("==============================")
-  parse_example()
+  basic_example()
   expansion_example()
   multiline_example()
-  double_quote_expansion_example()
   stringify_example()
   round_trip_example()
-  load_from_string_example()
-  demo_example()
+  load_example()
   println("\n✨ All examples completed successfully!")
 }

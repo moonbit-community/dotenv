@@ -27,20 +27,30 @@ test "load_from_string with export option" {
 }
 
 ///|
-test "LoadOptions default" {
-  let options = LoadOptions::default()
-  inspect(options.export_vars, content="false")
-  inspect(options.env_path, content="Some(\".env\")")
+test "LoadOptions creation methods" {
+  let default_options = LoadOptions::default()
+  inspect(default_options.export_vars, content="false")
+  inspect(default_options.env_path, content="Some(\".env\")")
+  let export_options = LoadOptions::with_export()
+  inspect(export_options.export_vars, content="true")
+  inspect(export_options.env_path, content="Some(\".env\")")
+  let custom_path = LoadOptions::with_path("/custom/.env")
+  inspect(custom_path.export_vars, content="false")
+  inspect(custom_path.env_path, content="Some(\"/custom/.env\")")
+  let no_file = LoadOptions::no_file()
+  inspect(no_file.export_vars, content="false")
+  inspect(no_file.env_path, content="None")
 }
 
 ///|
-test "demo function" {
-  let result = demo()
-
-  // Check that the demo function returns a non-empty string
-  inspect(result.length() > 0, content="true")
-  inspect(result.contains("Parsed"), content="true")
-  inspect(result.contains("environment variables"), content="true")
+test "load_from_string with variable expansion" {
+  let content = "BASE_URL=https://api.example.com\nAPI_ENDPOINT=$BASE_URL/v1"
+  let result = load_from_string(content)
+  inspect(result.get("BASE_URL"), content="Some(\"https://api.example.com\")")
+  inspect(
+    result.get("API_ENDPOINT"),
+    content="Some(\"https://api.example.com/v1\")",
+  )
 }
 
 ///|

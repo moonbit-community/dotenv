@@ -71,8 +71,8 @@ pub struct LoadOptions {
   /// Optional path to .env file. If None, defaults to "./.env"
   env_path : String?
   /// Whether to export all .env variables to a global environment
-  ///| Note: MoonBit doesn't have a global process environment like Deno,
-  ///| so this is for API compatibility and future extensions
+  /// Note: MoonBit doesn't have a global process environment like Deno,
+  /// so this is for API compatibility and future extensions
   export_vars : Bool
 } derive(Show, Eq, Default)
 
@@ -129,7 +129,7 @@ pub fn LoadOptions::no_file() -> LoadOptions {
 
 ///| @param content The .env file content as a string
 
-///| @param options Optional LoadOptions (defaults to export_to_env=false)
+///| @param options Optional LoadOptions (defaults to export_vars=false)
 
 ///| @returns The parsed environment variables as a Map
 pub fn load_from_string(
@@ -146,24 +146,4 @@ pub fn load_from_string(
     // Currently just returns the parsed configuration
   }
   conf
-}
-
-///| A simple example function showing how to use the dotenv module
-
-///|
-
-///| @example
-
-///| ```moonbit
-
-///| let demo_result = demo()
-
-///| println(demo_result)
-
-///| ```
-pub fn demo() -> String {
-  let env_content = "# This is a comment\nGREETING=hello world\nNAME=MoonBit\nPORT=3000\nDEBUG=true\nQUOTED='single quoted value'\nMULTILINE=\"line1\\nline2\""
-  let parsed = parse(env_content)
-  let stringified = stringify(parsed)
-  "Parsed \{parsed.size()} environment variables:\n\{stringified}"
 }

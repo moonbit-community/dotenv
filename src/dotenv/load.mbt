@@ -12,6 +12,12 @@
 
 ///|
 
+///| Inspired by the node modules {@linkcode https://github.com/motdotla/dotenv | dotenv}
+
+///| and {@linkcode https://github.com/motdotla/dotenv-expand | dotenv-expand}.
+
+///|
+
 ///| @example Auto-loading from .env file
 
 ///| ```moonbit
@@ -26,49 +32,77 @@
 
 ///| ```moonbit
 
-///| let options = LoadOptions::{ env_path: Some(".env.prod"), export: true }
+///| let options = LoadOptions::{ env_path: Some(".env.prod"), export_vars: true }
 
 ///| let conf = load_sync(options)
 
 ///| ```
 
-// LoadOptions is defined in mod.mbt and re-exported here
+///| Load environment variables from a .env file synchronously
 
-/// Load environment variables from a .env file synchronously
+///|
 
-///
+///| This function loads environment variables from a .env file on disk.
 
-/// This function loads environment variables from a .env file on disk.
+///| Note: In the current MoonBit environment, this is a mock implementation
 
-/// Note: In the current MoonBit environment, this is a mock implementation
+///| that demonstrates the API structure but doesn't perform actual file operations.
 
-/// that demonstrates the API structure but doesn't perform actual file operations.
+///|
 
-///
+///| The parsing engine supports the following rules:
 
-/// @example Basic usage
+///| - Variables that already exist in the environment are not overridden with `export_vars: true`
 
-/// ```moonbit
+///| - `BASIC=basic` becomes `{ BASIC: "basic" }`
 
-/// let conf = load_sync() // Uses default .env file
+///| - empty lines are skipped
 
-/// ```
+///| - lines beginning with `#` are treated as comments
 
-///
+///| - empty values become empty strings (`EMPTY=` becomes `{ EMPTY: "" }`)
 
-/// @example With custom options
+///| - single and double quoted values are escaped (`SINGLE_QUOTE='quoted'` becomes `{ SINGLE_QUOTE: "quoted" }`)
 
-/// ```moonbit
+///| - new lines are expanded in double quoted values (`MULTILINE="new\nline"` becomes `{ MULTILINE: "new\nline" }`)
 
-/// let options = LoadOptions::{ env_path: Some(".env.production"), export: true }
+///| - inner quotes are maintained (think JSON) (`JSON={"foo": "bar"}` becomes `{ JSON: "{\"foo\": \"bar\"}" }`)
 
-/// let conf = load_sync(options)
+///| - whitespace is removed from both ends of unquoted values (`FOO= some value` becomes `{ FOO: "some value" }`)
 
-/// ```
+///| - whitespace is preserved on both ends of quoted values (`FOO=" some value "` becomes `{ FOO: " some value " }`)
 
-///
+///| - dollar sign with an environment key in or without curly braces in unquoted values will expand the environment key (`KEY=$KEY` or `KEY=${KEY}` becomes `{ KEY: "<KEY_VALUE_FROM_ENV>" }`)
 
-/// @param options Optional LoadOptions (defaults to .env file, no export)
+///| - escaped dollar sign with an environment key in unquoted values will escape the environment key rather than expand (`KEY=\$KEY` becomes `{ KEY: "$KEY" }`)
+
+///| - colon and a minus sign with a default value in expanding construction in unquoted values will first attempt to expand the environment key. If it's not found, then it will return the default value (`KEY=${KEY:-default}` becomes `{ KEY: "default" }` if KEY doesn't exist)
+
+///|
+
+///| @example Basic usage
+
+///| ```moonbit
+
+///| let conf = load_sync() // Uses default .env file
+
+///| ```
+
+///|
+
+///| @example With custom options
+
+///| ```moonbit
+
+///| let options = LoadOptions::{ env_path: Some(".env.production"), export_vars: true }
+
+///| let conf = load_sync(options)
+
+///| ```
+
+///|
+
+///| @param options Optional LoadOptions (defaults to .env file, no export)
 
 ///| @returns The parsed environment variables as a Map
 pub fn load_sync(
@@ -95,6 +129,18 @@ pub fn load_sync(
 }
 
 ///| Parse a file synchronously (mock implementation)
+
+///|
+
+///| In a real implementation with file system access, this would:
+
+///| - Try to read the file content from the filesystem
+
+///| - Parse the content using the parse function
+
+///| - Return an empty Map if the file is not found
+
+///| - Propagate other errors
 fn parse_file_sync(filepath : String) -> Map[String, String] {
   // Mock implementation - in a real environment, this would:
   // try {
@@ -108,32 +154,50 @@ fn parse_file_sync(filepath : String) -> Map[String, String] {
   // For demonstration, return sample data based on common file names
   match filepath {
     ".env" => {
-      let sample_content = "GREETING=hello world\nPORT=3000"
+      let sample_content = "GREETING=hello world\nPORT=3000\nDEBUG=false"
       parse(sample_content)
     }
     ".env.test" => {
       let sample_content = "BASIC=basic\nEMPTY_VALUE=\nQUOTED_SINGLE='single quoted'"
       parse(sample_content)
     }
+    ".env.production" | ".env.prod" => {
+      let sample_content = "NODE_ENV=production\nPORT=8080\nDEBUG=false"
+      parse(sample_content)
+    }
+    ".env.development" | ".env.dev" => {
+      let sample_content = "NODE_ENV=development\nPORT=3000\nDEBUG=true"
+      parse(sample_content)
+    }
     _ => Map::new() // File not found
   }
 }
 
-/// Async version of load (mock implementation)
+///| Async version of load (mock implementation)
 
-///
+///|
 
-/// This would be the async version of load_sync in a full implementation.
+///| This would be the async version of load_sync in a full implementation.
 
-/// Currently returns the same result as load_sync since we don't have
+///| Currently returns the same result as load_sync since we don't have
 
-/// async file operations in the current MoonBit environment.
+///| async file operations in the current MoonBit environment.
 
-///
+///|
 
-/// @param options Optional LoadOptions
+///| @example Basic usage
 
-///| @returns Promise-like result with the parsed environment variables
+///| ```moonbit
+
+///| let conf = load() // Uses default .env file
+
+///| ```
+
+///|
+
+///| @param options Optional LoadOptions
+
+///| @returns The parsed environment variables as a Map
 pub fn load(
   options? : LoadOptions = LoadOptions::default(),
 ) -> Map[String, String] {
@@ -143,21 +207,25 @@ pub fn load(
   load_sync(options~)
 }
 
-/// Auto-load functionality (mock implementation)
+///| Auto-load functionality (mock implementation)
 
-///
+///|
 
-/// This function mimics the behavior of importing "@std/dotenv/load" in Deno,
+///| This function mimics the behavior of importing "@std/dotenv/load" in Deno,
 
-/// which automatically loads the .env file and exports variables to the environment.
+///| which automatically loads the .env file and exports variables to the environment.
 
-///
+///|
 
-/// @example Auto-loading
+///| Works identically to {@linkcode load_sync}, but automatically exports variables.
 
-/// ```moonbit
+///|
 
-/// auto_load() // Automatically loads .env and exports to environment
+///| @example Auto-loading
+
+///| ```moonbit
+
+///| auto_load() // Automatically loads .env and exports to environment
 
 ///| ```
 pub fn auto_load() -> Unit {
