@@ -80,9 +80,6 @@ pub fn quoting_and_multiline_example() -> Unit {
     #|# Escape sequences in double quotes
     #|LOG_FORMAT="[%timestamp%] %level%: %message%\n"
     #|
-
-  // Set APP_NAME for expansion demonstration
-  let temp_env = @dotenv.parse("APP_NAME=MoonBit")
   let parsed = @dotenv.parse(env_content)
   println("Quoting and multiline results:")
   for entry in parsed {
@@ -138,7 +135,10 @@ pub fn load_configuration_example() -> Unit {
   // Load with export option (would export to environment in full implementation)
   println("\nLoading with export option:")
   let export_options = @dotenv.LoadOptions::with_export()
-  let config2 = @dotenv.load_from_string(sample_env_content, export_options~)
+  let config2 = @dotenv.load_from_string(
+    sample_env_content,
+    options=export_options,
+  )
   println("  Exported \{config2.size()} variables to environment")
 
   // Demonstrate different LoadOptions configurations
