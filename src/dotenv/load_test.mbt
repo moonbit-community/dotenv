@@ -99,7 +99,7 @@ test "load with different file extensions" {
   // Different files should return different or empty results
   inspect(result1.size() > 0, content="true")
   inspect(result2.size() > 0, content="true")
-  inspect(result3.size(), content="0") // non-existent file
+  inspect(result3.size(), content="3") // .env.production has sample data
 }
 
 ///|
@@ -108,9 +108,10 @@ test "load options are properly used" {
   let options_none = LoadOptions::no_file()
   let result_none = load_sync(options=options_none)
 
-  // With None env_path, should default to ".env"
-  let result_default = load_sync()
+  // With None env_path, should return empty map (no file to load)
+  inspect(result_none.size(), content="0")
 
-  // Should behave the same as default
-  inspect(result_none.size(), content="\{result_default.size()}")
+  // Compare with default which should have data
+  let result_default = load_sync()
+  inspect(result_default.size() > 0, content="true")
 }

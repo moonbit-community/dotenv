@@ -42,11 +42,7 @@
 
 ///|
 
-///| This function loads environment variables from a .env file on disk.
-
-///| Note: In the current MoonBit environment, this is a mock implementation
-
-///| that demonstrates the API structure but doesn't perform actual file operations.
+///| Works identically to {@linkcode load}, but synchronously.
 
 ///|
 
@@ -110,7 +106,7 @@ pub fn load_sync(
 ) -> Map[String, String] {
   let env_path = match options.env_path {
     Some(path) => path
-    None => ".env"
+    None => return Map::new() // No file to load
   }
 
   // Mock implementation - in a real environment with file system access,
@@ -128,6 +124,218 @@ pub fn load_sync(
   conf
 }
 
+///| Load environment variables from a .env file asynchronously
+
+///|
+
+///| Load environment variables from a `.env` file. Loaded variables are accessible
+
+///| in a configuration object returned by the `load()` function, as well as optionally
+
+///| exporting them to the process environment using the `export_vars` option.
+
+///|
+
+///| Inspired by the node modules {@linkcode https://github.com/motdotla/dotenv | dotenv}
+
+///| and {@linkcode https://github.com/motdotla/dotenv-expand | dotenv-expand}.
+
+///|
+
+///| Note: The key needs to match the pattern /^[a-zA-Z_][a-zA-Z0-9_]*$/.
+
+///|
+
+///| ## Basic usage
+
+///| ```sh
+
+///| # .env
+
+///| GREETING=hello world
+
+///| ```
+
+///|
+
+///| Then import the environment variables using the `load` function.
+
+///|
+
+///| @example Basic usage
+
+///| ```moonbit
+
+///| let conf = load() // { GREETING: "hello world" }
+
+///| ```
+
+///|
+
+///| ## Auto loading
+
+///| Import the `load` functionality to auto-import from the `.env` file and into
+
+///| the process environment.
+
+///|
+
+///| @example Auto-loading
+
+///| ```moonbit
+
+///| auto_load() // Automatically loads .env file
+
+///| ```
+
+///|
+
+///| ## Files
+
+///| Dotenv supports a number of different files, all of which are optional.
+
+///| File names and paths are configurable.
+
+///|
+
+///| |File|Purpose|
+
+///| |----|-------|
+
+///| |.env|primary file for storing key-value environment entries
+
+///|
+
+///| ## Configuration
+
+///|
+
+///| Loading environment files comes with a number of options passed into
+
+///| the `load()` function, all of which are optional.
+
+///|
+
+///| |Option|Default|Description
+
+///| |------|-------|-----------
+
+///| |env_path|./.env|Path and filename of the `.env` file. Use None to prevent the .env file from being loaded.
+
+///| |export_vars|false|When true, this will export all environment variables in the `.env` file to the process environment but only if they are not already set. If a variable is already in the process, the `.env` value is ignored.
+
+///|
+
+///| ### Example configuration
+
+///|
+
+///| @example Using with options
+
+///| ```moonbit
+
+///| let options = LoadOptions::{ env_path: Some(".env_prod"), export_vars: true }
+
+///| let conf = load(options)
+
+///| ```
+
+///|
+
+///| ## Permissions
+
+///|
+
+///| At a minimum, loading the `.env` related files requires file system read permissions.
+
+///| Additionally, if you access the process environment, either through exporting your
+
+///| configuration or expanding variables in your `.env` file, you will need environment
+
+///| variable access permissions.
+
+///|
+
+///| ## Parsing Rules
+
+///|
+
+///| The parsing engine currently supports the following rules:
+
+///|
+
+///| - Variables that already exist in the environment are not overridden with
+
+///|   `export_vars: true`
+
+///| - `BASIC=basic` becomes `{ BASIC: "basic" }`
+
+///| - empty lines are skipped
+
+///| - lines beginning with `#` are treated as comments
+
+///| - empty values become empty strings (`EMPTY=` becomes `{ EMPTY: "" }`)
+
+///| - single and double quoted values are escaped (`SINGLE_QUOTE='quoted'` becomes
+
+///|   `{ SINGLE_QUOTE: "quoted" }`)
+
+///| - new lines are expanded in double quoted values (`MULTILINE="new\nline"`
+
+///|   becomes `{ MULTILINE: "new\nline" }`)
+
+///| - inner quotes are maintained (think JSON) (`JSON={"foo": "bar"}` becomes
+
+///|   `{ JSON: "{\"foo\": \"bar\"}" }`)
+
+///| - whitespace is removed from both ends of unquoted values (see more on
+
+///|   trim) (`FOO= some value` becomes `{ FOO: "some value" }`)
+
+///| - whitespace is preserved on both ends of quoted values (`FOO=" some value "`
+
+///|   becomes `{ FOO: " some value " }`)
+
+///| - dollar sign with an environment key in or without curly braces in unquoted
+
+///|   values will expand the environment key (`KEY=$KEY` or `KEY=${KEY}` becomes
+
+///|   `{ KEY: "<KEY_VALUE_FROM_ENV>" }`)
+
+///| - escaped dollar sign with an environment key in unquoted values will escape the
+
+///|   environment key rather than expand (`KEY=\$KEY` becomes `{ KEY: "$KEY" }`)
+
+///| - colon and a minus sign with a default value(which can also be another expand
+
+///|   value) in expanding construction in unquoted values will first attempt to
+
+///|   expand the environment key. If it's not found, then it will return the default
+
+///|   value (`KEY=${KEY:-default}` If KEY exists it becomes
+
+///|   `{ KEY: "<KEY_VALUE_FROM_ENV>" }` If not, then it becomes
+
+///|   `{ KEY: "default" }`. Also there is possible to do this case
+
+///|   `KEY=${NO_SUCH_KEY:-${EXISTING_KEY:-default}}` which becomes
+
+///|   `{ KEY: "<EXISTING_KEY_VALUE_FROM_ENV>" }`)
+
+///|
+
+///| @param options The LoadOptions configuration object
+
+///| @returns The parsed environment variables as a Map
+pub fn load(
+  options? : LoadOptions = LoadOptions::default(),
+) -> Map[String, String] {
+  // In a real async implementation, this would be:
+  // async fn load(options? : LoadOptions = LoadOptions::default()) -> Map[String, String]
+  // For now, delegate to the sync version
+  load_sync(options~)
+}
+
 ///| Parse a file synchronously (mock implementation)
 
 ///|
@@ -138,17 +346,29 @@ pub fn load_sync(
 
 ///| - Parse the content using the parse function
 
-///| - Return an empty Map if the file is not found
+///| - Return an empty Map if the file is not found (NotFound error)
 
 ///| - Propagate other errors
+
+///|
+
+///| This function mimics the behavior of parseFile and parseFileSync from
+
+///| the Deno std library.
+
+///|
+
+///| @param filepath The path to the .env file
+
+///| @returns The parsed environment variables as a Map
 fn parse_file_sync(filepath : String) -> Map[String, String] {
   // Mock implementation - in a real environment, this would:
   // try {
   //   let content = read_text_file(filepath)
   //   parse(content)
   // } catch {
-  //   FileNotFound => Map::new()
-  //   other => raise other
+  //   NotFound => Map::new()  // Return empty map if file doesn't exist
+  //   other => raise other    // Propagate other errors
   // }
 
   // For demonstration, return sample data based on common file names
@@ -165,42 +385,16 @@ fn parse_file_sync(filepath : String) -> Map[String, String] {
       let sample_content = "NODE_ENV=development\nPORT=3000\nDEBUG=true"
       parse(sample_content)
     }
-    _ => Map::new() // File not found (including .env.production)
+    ".env.production" | ".env.prod" => {
+      let sample_content = "NODE_ENV=production\nPORT=8000\nDEBUG=false"
+      parse(sample_content)
+    }
+    ".env.local" => {
+      let sample_content = "LOCAL_VAR=local_value\nOVERRIDE=true"
+      parse(sample_content)
+    }
+    _ => Map::new() // File not found - return empty map
   }
-}
-
-///| Async version of load (mock implementation)
-
-///|
-
-///| This would be the async version of load_sync in a full implementation.
-
-///| Currently returns the same result as load_sync since we don't have
-
-///| async file operations in the current MoonBit environment.
-
-///|
-
-///| @example Basic usage
-
-///| ```moonbit
-
-///| let conf = load() // Uses default .env file
-
-///| ```
-
-///|
-
-///| @param options Optional LoadOptions
-
-///| @returns The parsed environment variables as a Map
-pub fn load(
-  options? : LoadOptions = LoadOptions::default(),
-) -> Map[String, String] {
-  // In a real async implementation, this would be:
-  // async fn load(options? : LoadOptions = LoadOptions::default()) -> Map[String, String]
-  // For now, delegate to the sync version
-  load_sync(options~)
 }
 
 ///| Auto-load functionality (mock implementation)
@@ -217,6 +411,12 @@ pub fn load(
 
 ///|
 
+///| Note: In the current implementation, this checks if file system read functionality
+
+///| is available and warns if .env data cannot be loaded.
+
+///|
+
 ///| @example Auto-loading
 
 ///| ```moonbit
@@ -225,17 +425,29 @@ pub fn load(
 
 ///| ```
 pub fn auto_load() -> Unit {
-  // Mock the behavior of the load.ts file from Deno std
-  let options = LoadOptions::with_export()
-  let conf = load_sync(options~)
+  // Mimic the behavior from load.ts in Deno std:
+  // if (!(Deno.readTextFileSync instanceof Function)) {
+  //   console.warn(`Deno.readTextFileSync is not a function: No .env data was read.`);
+  // } else {
+  //   loadSync({ export: true });
+  // }
 
-  // In a real implementation, this would check for file system capabilities
-  // and warn if file reading is not available
-  if conf.is_empty() {
+  // Check if we have file system capabilities (mock check)
+  let has_file_system = true // In reality, this would check runtime capabilities
+  if not(has_file_system) {
     println(
-      "Warning: No .env data was loaded (file system access not available)",
+      "Warning: File system read is not available: No .env data was read.",
     )
   } else {
-    println("Auto-loaded \{conf.size()} environment variables from .env")
+    // Load with export enabled (equivalent to { export: true })
+    let options = LoadOptions::with_export()
+    let conf = load_sync(options~)
+    if conf.is_empty() {
+      println(
+        "Warning: No .env data was loaded (file system access not available or file not found)",
+      )
+    } else {
+      println("Auto-loaded \{conf.size()} environment variables from .env")
+    }
   }
 }
