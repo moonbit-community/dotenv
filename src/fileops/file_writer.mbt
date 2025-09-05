@@ -1,13 +1,17 @@
-///| 异步文件写入器
+///|
+/// 异步文件写入器
 ///
 /// 提供异步文件写入功能，特别针对 .env 文件的写入和备份操作
 suberror DirectoryError String
 
-///| 异步写入文件内容
+// Encoding utilities are now in encoding_utils.mbt
+
+///|
+/// 异步写入文件内容
 /// 
 /// # 参数
 /// - `file_path`: 文件路径
-/// - `content`: 要写入的内容
+/// - `content`: 要写入的内容（UTF-8 编码）
 /// - `permission`: 文件权限（默认 0o644）
 /// 
 /// # 错误
@@ -17,41 +21,48 @@ pub async fn write_file_content(
   content : String,
   permission? : Int = 0o644,
 ) -> Unit raise {
-  let file = @fs.create(file_path.to_ascii(), permission~, sync=Full)
+  let file = @fs.create(string_to_utf8_bytes(file_path), permission~, sync=Full)
   defer file.close()
-  file.write(content.to_ascii())
+  file.write(string_to_utf8_bytes(content))
 }
 
-///| 异步写入 .env 文件
+///|
+/// 异步写入 .env 文件（需要预处理的内容）
 /// 
 /// # 参数
 /// - `env_file_path`: .env 文件路径
-/// - `env_vars`: 环境变量 Map
+/// - `env_content`: 已经格式化的 .env 文件内容字符串
 /// - `permission`: 文件权限（默认 0o644）
 /// 
 /// # 错误
 /// 如果写入失败会抛出异常
-pub async fn write_env_file(
+/// 
+/// # 注意
+/// 这个函数只负责文件写入，内容格式化需要使用 dotenv 包的 stringify 函数。
+pub async fn write_env_file_raw(
   env_file_path : String,
-  env_vars : Map[String, String],
+  env_content : String,
   permission? : Int = 0o644,
 ) -> Unit raise {
-  let content = @dotenv.stringify(env_vars)
-  write_file_content(env_file_path, content, permission~)
+  write_file_content(env_file_path, env_content, permission~)
 }
 
-///| 安全地写入 .env 文件（先备份原文件）
+///|
+/// 安全地写入 .env 文件（先备份原文件）
 /// 
 /// # 参数
 /// - `env_file_path`: .env 文件路径
-/// - `env_vars`: 环境变量 Map
+/// - `env_content`: 已经格式化的 .env 文件内容字符串
 /// - `backup_suffix`: 备份文件后缀（默认 ".backup"）
 /// 
 /// # 错误
 /// 如果操作失败会抛出异常
+/// 
+/// # 注意
+/// 这个函数只负责安全的文件写入，内容格式化需要使用 dotenv 包的 stringify 函数。
 pub async fn write_env_file_safe(
   env_file_path : String,
-  env_vars : Map[String, String],
+  env_content : String,
   backup_suffix? : String = ".backup",
 ) -> Unit raise {
   let backup_path = env_file_path + backup_suffix
@@ -63,7 +74,7 @@ pub async fn write_env_file_safe(
   }
 
   // 写入新内容
-  write_env_file(env_file_path, env_vars) catch {
+  write_env_file_raw(env_file_path, env_content) catch {
     err => {
       // 如果写入失败且存在备份，尝试恢复
       if file_exists(backup_path) {
@@ -75,11 +86,12 @@ pub async fn write_env_file_safe(
   }
 }
 
-///| 追加内容到文件
+///|
+/// 追加内容到文件
 /// 
 /// # 参数
 /// - `file_path`: 文件路径
-/// - `content`: 要追加的内容
+/// - `content`: 要追加的内容（UTF-8 编码）
 /// 
 /// # 错误
 /// 如果操作失败会抛出异常
@@ -88,16 +100,17 @@ pub async fn append_file_content(
   content : String,
 ) -> Unit raise {
   let file = @fs.open(
-    file_path.to_ascii(),
+    string_to_utf8_bytes(file_path),
     mode=WriteOnly,
     append=true,
     create=0o644,
   )
   defer file.close()
-  file.write(content.to_ascii())
+  file.write(string_to_utf8_bytes(content))
 }
 
-///| 创建目录（如果不存在）
+///|
+/// 创建目录（如果不存在）
 /// 
 /// # 参数
 /// - `dir_path`: 目录路径
@@ -107,7 +120,7 @@ pub async fn append_file_content(
 pub async fn ensure_directory(dir_path : String) -> Unit raise DirectoryError {
   // 简单检查目录是否存在
   let exists = try {
-    let dir_file = @fs.open(dir_path.to_ascii(), mode=ReadOnly)
+    let dir_file = @fs.open(string_to_utf8_bytes(dir_path), mode=ReadOnly)
     defer dir_file.close()
     match dir_file.kind() {
       Directory => true
@@ -125,7 +138,8 @@ pub async fn ensure_directory(dir_path : String) -> Unit raise DirectoryError {
   }
 }
 
-///| 删除文件
+///|
+/// 删除文件
 /// 
 /// # 参数
 /// - `file_path`: 文件路径
@@ -133,10 +147,11 @@ pub async fn ensure_directory(dir_path : String) -> Unit raise DirectoryError {
 /// # 错误
 /// 如果删除失败会抛出异常
 pub async fn delete_file(file_path : String) -> Unit raise {
-  @fs.remove(file_path.to_ascii())
+  @fs.remove(string_to_utf8_bytes(file_path))
 }
 
-///| 复制文件
+///|
+/// 复制文件
 /// 
 /// # 参数
 /// - `source_path`: 源文件路径

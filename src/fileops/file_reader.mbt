@@ -11,50 +11,43 @@
 /// })
 /// ```
 
-///| 将 String 转换为 Bytes（用于文件路径等）
-fn String::to_ascii(str : String) -> Bytes {
-  Bytes::makei(str.length(), i => str.unsafe_charcode_at(i).to_byte())
-}
+// Encoding utilities are now in encoding_utils.mbt
 
-///| 将 Bytes 转换为 String（用于文件内容显示）
-fn ascii_to_string(ascii : @bytes.View) -> String {
-  let builder = StringBuilder::new()
-  for byte in ascii {
-    builder.write_char(byte.to_int().unsafe_to_char())
-  }
-  builder.to_string()
-}
-
-///| 异步读取文件内容
+///|
+/// 异步读取文件内容
 /// 
 /// # 参数
 /// - `file_path`: 文件路径
 /// 
 /// # 返回值
-/// 文件内容字符串
+/// 文件内容字符串（UTF-8 解码）
 /// 
 /// # 错误
 /// 如果文件不存在或读取失败，会抛出异常
 pub async fn read_file_content(file_path : String) -> String raise {
-  let file = @fs.open(file_path.to_ascii(), mode=ReadOnly)
+  let file = @fs.open(string_to_utf8_bytes(file_path), mode=ReadOnly)
   defer file.close()
   let content = file.read_all()
-  ascii_to_string(content)
+  utf8_bytes_to_string(content)
 }
 
-///| 异步读取 .env 文件并解析为环境变量映射
+///|
+/// 异步读取 .env 文件内容（原始字符串）
 /// 
 /// # 参数
 /// - `env_file_path`: .env 文件路径
 /// 
 /// # 返回值
-/// 解析后的环境变量 Map
-pub async fn read_env_file(env_file_path : String) -> Map[String, String] raise {
-  let content = read_env_file_content(env_file_path)
-  @dotenv.parse(content)
+/// 原始的 .env 文件内容字符串，需要使用 dotenv 库进行解析
+/// 
+/// # 注意
+/// 这个函数只负责文件读取，不进行解析。解析需要使用 dotenv 包的 parse 函数。
+pub async fn read_env_file_raw(env_file_path : String) -> String raise {
+  read_env_file_content(env_file_path)
 }
 
-///| 异步读取 .env 文件内容（不解析）
+///|
+/// 异步读取 .env 文件内容（不解析）
 /// 
 /// # 参数  
 /// - `env_file_path`: .env 文件路径
@@ -65,7 +58,8 @@ pub async fn read_env_file_content(env_file_path : String) -> String raise {
   read_file_content(env_file_path)
 }
 
-///| 检查文件是否存在
+///|
+/// 检查文件是否存在
 /// 
 /// # 参数
 /// - `file_path`: 文件路径
@@ -74,7 +68,7 @@ pub async fn read_env_file_content(env_file_path : String) -> String raise {
 /// 如果文件存在返回 true，否则返回 false
 pub async fn file_exists(file_path : String) -> Bool noraise {
   try {
-    let file = @fs.open(file_path.to_ascii(), mode=ReadOnly)
+    let file = @fs.open(string_to_utf8_bytes(file_path), mode=ReadOnly)
     file.close()
     true
   } catch {
@@ -82,7 +76,8 @@ pub async fn file_exists(file_path : String) -> Bool noraise {
   }
 }
 
-///| 获取文件信息
+///|
+/// 获取文件信息
 /// 
 /// # 参数
 /// - `file_path`: 文件路径
@@ -90,7 +85,7 @@ pub async fn file_exists(file_path : String) -> Bool noraise {
 /// # 返回值
 /// 包含文件大小和类型的元组
 pub async fn get_file_info(file_path : String) -> (Int64, String) raise {
-  let file = @fs.open(file_path.to_ascii(), mode=ReadOnly)
+  let file = @fs.open(string_to_utf8_bytes(file_path), mode=ReadOnly)
   defer file.close()
   let size = file.size()
   let kind = match file.kind() {
@@ -104,26 +99,28 @@ pub async fn get_file_info(file_path : String) -> (Int64, String) raise {
   (size, kind)
 }
 
-///| 异步读取目录内容
+///|
+/// 异步读取目录内容
 /// 
 /// # 参数
 /// - `dir_path`: 目录路径
 /// 
 /// # 返回值
-/// 目录中文件名的数组
+/// 目录中文件名的数组（UTF-8 解码）
 pub async fn read_directory(dir_path : String) -> Array[String] raise {
-  let dir_file = @fs.open(dir_path.to_ascii(), mode=ReadOnly)
+  let dir_file = @fs.open(string_to_utf8_bytes(dir_path), mode=ReadOnly)
   defer dir_file.close()
   let dir = dir_file.as_dir()
   let files = dir.read_all()
-  let mut result = Array::new()
+  let result = Array::new()
   for file in files {
-    result.push(ascii_to_string(file))
+    result.push(utf8_bytes_to_string(file))
   }
   result
 }
 
-///| 查找目录中的所有 .env 文件
+///|
+/// 查找目录中的所有 .env 文件
 /// 
 /// # 参数
 /// - `dir_path`: 目录路径
@@ -132,7 +129,7 @@ pub async fn read_directory(dir_path : String) -> Array[String] raise {
 /// .env 文件路径的数组
 pub async fn find_env_files(dir_path : String) -> Array[String] raise {
   let files = read_directory(dir_path)
-  let mut env_files = Array::new()
+  let env_files = Array::new()
   for file in files {
     let is_env_file = match file.strip_suffix(".env") {
       Some(_) => true

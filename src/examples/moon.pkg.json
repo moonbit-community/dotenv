@@ -1,9 +1,9 @@
 {
-  "is_main": true,
+  "is-main": true,
   "import": [
-    "username/dotenv/dotenv",
-    "username/dotenv/fileops",
-    "moonbitlang/async"
+    "moonbitlang/async",
+    "allwefantasy/dotenv/dotenv",
+    "allwefantasy/dotenv/fileops"
   ],
   "supported-targets": ["native"]
 }

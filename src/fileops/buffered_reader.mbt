@@ -2,7 +2,10 @@
 ///
 /// 提供高效的缓冲文件读取功能，特别适用于大文件处理
 
-///| 逐行读取文件内容
+// Helper functions are defined in file_reader.mbt and file_writer.mbt
+
+///|
+/// 使用缓冲方式逐行读取文件内容
 /// 
 /// # 参数
 /// - `file_path`: 文件路径
@@ -12,13 +15,13 @@
 /// 
 /// # 错误
 /// 如果读取失败会抛出异常
-pub async fn read_lines(file_path : String) -> Array[String] raise {
-  let file = @fs.open(file_path.to_ascii(), mode=ReadOnly)
+pub async fn read_lines_buffered(file_path : String) -> Array[String] raise {
+  let file = @fs.open(string_to_utf8_bytes(file_path), mode=ReadOnly)
   defer file.close()
 
   // 简化实现：直接读取全部内容然后按行分割
   let content = file.read_all()
-  let content_str = ascii_to_string(content)
+  let content_str = utf8_bytes_to_string(content)
 
   // 按换行符分割
   let lines = Array::new()
@@ -48,7 +51,8 @@ pub async fn read_lines(file_path : String) -> Array[String] raise {
   lines
 }
 
-///| 查找文件中包含特定模式的行
+///|
+/// 查找文件中包含特定模式的行
 /// 
 /// # 参数
 /// - `file_path`: 文件路径
@@ -60,8 +64,8 @@ pub async fn find_lines_with_pattern(
   file_path : String,
   pattern : String,
 ) -> Array[(Int, String)] raise {
-  let lines = read_lines(file_path)
-  let mut matches = Array::new()
+  let lines = read_lines_buffered(file_path)
+  let matches = Array::new()
   for i = 0; i < lines.length(); i = i + 1 {
     let line = lines[i]
     if line.contains(pattern) {
@@ -71,7 +75,8 @@ pub async fn find_lines_with_pattern(
   matches
 }
 
-///| 读取文件的指定行范围
+///|
+/// 读取文件的指定行范围
 /// 
 /// # 参数
 /// - `file_path`: 文件路径
@@ -85,8 +90,8 @@ pub async fn read_line_range(
   start_line : Int,
   end_line : Int,
 ) -> Array[String] raise {
-  let lines = read_lines(file_path)
-  let mut result = Array::new()
+  let lines = read_lines_buffered(file_path)
+  let result = Array::new()
   let start_idx = start_line - 1 // 转换为0索引
   let end_idx = end_line - 1
   if start_idx >= 0 &&
@@ -100,7 +105,8 @@ pub async fn read_line_range(
   result
 }
 
-///| 统计文件信息
+///|
+/// 统计文件信息
 /// 
 /// # 参数
 /// - `file_path`: 文件路径
@@ -108,18 +114,19 @@ pub async fn read_line_range(
 /// # 返回值
 /// (行数, 字符数, 字节数) 的元组
 pub async fn file_stats(file_path : String) -> (Int, Int, Int64) raise {
-  let file = @fs.open(file_path.to_ascii(), mode=ReadOnly)
+  let file = @fs.open(string_to_utf8_bytes(file_path), mode=ReadOnly)
   defer file.close()
   let content = file.read_all()
-  let content_str = ascii_to_string(content)
-  let lines = read_lines(file_path)
+  let content_str = utf8_bytes_to_string(content)
+  let lines = read_lines_buffered(file_path)
   let line_count = lines.length()
   let char_count = content_str.length()
   let byte_count = file.size()
   (line_count, char_count, byte_count)
 }
 
-///| 监控文件大小变化（简单实现）
+///|
+/// 监控文件大小变化（简单实现）
 /// 
 /// # 参数
 /// - `file_path`: 文件路径
@@ -133,7 +140,7 @@ pub async fn monitor_file_size(
   check_interval_ms? : Int = 1000,
   max_checks? : Int = 10,
 ) -> Array[Int64] raise {
-  let mut sizes = Array::new()
+  let sizes = Array::new()
   for i = 0; i < max_checks; i = i + 1 {
     if file_exists(file_path) {
       let (size, _) = get_file_info(file_path)

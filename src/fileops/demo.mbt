@@ -2,7 +2,8 @@
 ///
 /// 展示如何使用异步文件操作 API 来处理 .env 文件和其他文件操作
 
-///| 演示基本文件读写操作
+///|
+/// 演示基本文件读写操作
 pub async fn demo_basic_file_ops() -> Unit raise {
   println("=== 基本文件操作演示 ===")
 
@@ -24,15 +25,18 @@ pub async fn demo_basic_file_ops() -> Unit raise {
   println("✓ 文件信息: 大小=\{size}字节, 类型=\{kind}")
 
   // 解析为环境变量
-  let env_vars = read_env_file(test_file)
-  println("✓ 解析得到 \{env_vars.size()} 个环境变量")
+  let env_content = read_env_file_content(test_file)
+  println(
+    "✓ 读取了环境文件内容，长度: \{env_content.length()} 字符",
+  )
 
   // 清理
   delete_file(test_file)
   println("✓ 已删除测试文件")
 }
 
-///| 演示错误处理
+///|
+/// 演示错误处理
 pub async fn demo_error_handling() -> Unit raise {
   println("\n=== 错误处理演示 ===")
 
@@ -57,7 +61,7 @@ pub async fn demo_error_handling() -> Unit raise {
   // 创建格式错误的 .env 文件
   let bad_content = "VALID_VAR=value\nINVALID LINE WITHOUT EQUALS\nANOTHER_VALID=value2\n"
   write_file_content("bad.env", bad_content)
-  let (is_valid, errors) = validate_env_file("bad.env")
+  let (is_valid, errors) = validate_env_file_format("bad.env")
   println("✓ 格式验证结果: 有效=\{is_valid}")
   if not(is_valid) {
     println("  发现的错误:")
@@ -68,7 +72,8 @@ pub async fn demo_error_handling() -> Unit raise {
   delete_file("bad.env")
 }
 
-///| 主演示函数
+///|
+/// 主演示函数
 pub async fn run_all_demos() -> Unit raise {
   println("开始异步文件操作演示...")
   demo_basic_file_ops()

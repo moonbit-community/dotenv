@@ -2,7 +2,6 @@
   "import": [
     "moonbitlang/async",
     "moonbitlang/async/fs",
-    "allwefantasy/dotenv/dotenv",
     "tonyfettes/encoding"
   ],
   "supported-targets": ["native"]
