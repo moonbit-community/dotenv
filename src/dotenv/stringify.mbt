@@ -41,14 +41,14 @@ fn contains_non_word(str : String) -> Bool {
 ///| Escape a string by replacing quotes with escaped quotes
 fn escape_quotes(str : String, quote : String) -> String {
   let mut result = ""
-  let quote_code = if quote == "'" { 39 } else { 34 } // ' or "
+  let quote_code : UInt16 = if quote == "'" { 39 } else { 34 } // ' or "
   for i = 0; i < str.length(); i = i + 1 {
     if str[i] == quote_code {
       result = result + "\\" + quote
     } else if str[i] == 92 { // backslash
       result = result + "\\\\"
     } else {
-      result = result + str.substring(start=i, end=i + 1)
+      result = result + str[i:i + 1].to_string()
     }
   }
   result
@@ -63,7 +63,7 @@ fn escape_newlines(str : String) -> String {
     } else if str[i] == 13 { // '\r' = 13
       result = result + "\\r"
     } else {
-      result = result + str.substring(start=i, end=i + 1)
+      result = result + str[i:i + 1].to_string()
     }
   }
   result
