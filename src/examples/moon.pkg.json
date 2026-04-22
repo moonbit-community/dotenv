@@ -5,5 +5,5 @@
     "allwefantasy/dotenv/dotenv",
     "allwefantasy/dotenv/fileops"
   ],
-  "supported-targets": ["native"]
+  "supported-targets": "native"
 }

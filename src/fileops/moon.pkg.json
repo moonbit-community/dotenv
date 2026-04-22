@@ -4,5 +4,5 @@
     "moonbitlang/async/fs",
     "tonyfettes/encoding"
   ],
-  "supported-targets": ["native"]
+  "supported-targets": "native"
 }
