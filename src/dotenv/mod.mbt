@@ -40,6 +40,7 @@
 
 ///|
 /// Options for {@linkcode load} and {@linkcode load_sync}.
+#alias(LoadOptionsCompat)
 pub struct LoadOptions {
   /// Optional path to `.env` file. To prevent the default value from being
   /// used, set to `None`.
@@ -52,7 +53,7 @@ pub struct LoadOptions {
   ///
   /// @default {false}
   export_vars : Bool
-} derive(Show, Eq, Default)
+} derive(Debug, Eq, Default)
 
 ///|
 /// Create default LoadOptions
@@ -271,7 +272,7 @@ pub fn auto_load() -> Unit {
 
   // Check if we have file system capabilities (mock check)
   let has_file_system = true // In reality, this would check runtime capabilities
-  if not(has_file_system) {
+  if !(has_file_system) {
     println(
       "Warning: File system read is not available: No .env data was read.",
     )
@@ -284,7 +285,7 @@ pub fn auto_load() -> Unit {
         "Warning: No .env data was loaded (file system access not available or file not found)",
       )
     } else {
-      println("Auto-loaded \{conf.size()} environment variables from .env")
+      println("Auto-loaded \{conf.length()} environment variables from .env")
     }
   }
 }

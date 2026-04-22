@@ -2,7 +2,7 @@
 /// 异步文件写入器
 ///
 /// 提供异步文件写入功能，特别针对 .env 文件的写入和备份操作
-suberror DirectoryError String
+suberror DirectoryError { DirectoryError(String) }
 
 // Encoding utilities are now in encoding_utils.mbt
 
@@ -129,7 +129,7 @@ pub async fn ensure_directory(dir_path : String) -> Unit raise DirectoryError {
   } catch {
     _ => false
   }
-  if not(exists) {
+  if !(exists) {
     // 注意：这里只是演示，实际的目录创建需要系统调用
     // 在真实项目中，你可能需要使用 @process.run 来调用 mkdir
     raise DirectoryError(

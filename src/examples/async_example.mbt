@@ -44,7 +44,7 @@ async fn config_manager_example() -> Unit noraise {
   try {
     let content = @fileops.read_env_file_content(".env.development")
     let parsed_vars = @dotenv.parse(content)
-    println("✓ 解析得到 \{parsed_vars.size()} 个环境变量")
+    println("✓ 解析得到 \{parsed_vars.length()} 个环境变量")
     for entry in parsed_vars {
       let (key, value) = entry
       println("  \{key}=\{value}")

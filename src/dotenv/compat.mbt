@@ -7,8 +7,6 @@
 /// Options interface compatible with Deno std/dotenv
 ///
 /// This matches the LoadOptions interface from the Deno implementation
-pub typealias LoadOptions as LoadOptionsCompat
-
 ///|
 /// Create LoadOptions with Deno-compatible defaults
 pub fn load_options_compat(
