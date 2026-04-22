@@ -2,7 +2,7 @@
 test "parse basic functionality" {
   let env_content = "GREETING=hello world\nNAME=MoonBit"
   let result = parse(env_content)
-  inspect(result.size(), content="2")
+  inspect(result.length(), content="2")
   inspect(result.get("GREETING"), content="Some(\"hello world\")")
   inspect(result.get("NAME"), content="Some(\"MoonBit\")")
 }
@@ -11,7 +11,7 @@ test "parse basic functionality" {
 test "parse handles empty lines and comments" {
   let env_content = "BASIC=basic\n\n# This is a comment\nAFTER_EMPTY=empty"
   let result = parse(env_content)
-  inspect(result.size(), content="2")
+  inspect(result.length(), content="2")
   inspect(result.get("BASIC"), content="Some(\"basic\")")
   inspect(result.get("AFTER_EMPTY"), content="Some(\"empty\")")
   inspect(result.get("#COMMENT"), content="None")
@@ -60,7 +60,7 @@ test "parse handles export prefix" {
 test "parse ignores invalid keys" {
   let env_content = "VALID_KEY=valid\n1INVALID=invalid"
   let result = parse(env_content)
-  inspect(result.size(), content="1")
+  inspect(result.length(), content="1")
   inspect(result.get("VALID_KEY"), content="Some(\"valid\")")
   inspect(result.get("1INVALID"), content="None")
 }
@@ -77,7 +77,7 @@ test "parse handles special characters in values" {
 test "parse handles complex example" {
   let env_content = "# Comment\nBASIC=basic\n\nQUOTED='hello world'\nEMPTY="
   let result = parse(env_content)
-  inspect(result.size(), content="3")
+  inspect(result.length(), content="3")
   inspect(result.get("BASIC"), content="Some(\"basic\")")
   inspect(result.get("QUOTED"), content="Some(\"hello world\")")
   inspect(result.get("EMPTY"), content="Some(\"\")")
@@ -188,7 +188,7 @@ test "parse handles complete .env.test file" {
   let result = parse(test_content)
 
   // Should parse 26 valid keys according to reference tests
-  inspect(result.size(), content="26")
+  inspect(result.length(), content="26")
 
   // Test key-value parsing
   inspect(result.get("BASIC"), content="Some(\"basic\")")

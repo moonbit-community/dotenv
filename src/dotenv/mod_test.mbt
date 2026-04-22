@@ -2,7 +2,7 @@
 test "load_from_string basic functionality" {
   let content = "GREETING=hello world\nPORT=3000"
   let result = load_from_string(content)
-  inspect(result.size(), content="2")
+  inspect(result.length(), content="2")
   inspect(result.get("GREETING"), content="Some(\"hello world\")")
   inspect(result.get("PORT"), content="Some(\"3000\")")
 }
@@ -11,7 +11,7 @@ test "load_from_string basic functionality" {
 test "load_from_string with default options" {
   let content = "NAME=MoonBit\nVERSION=1.0"
   let result = load_from_string(content, options=LoadOptions::default())
-  inspect(result.size(), content="2")
+  inspect(result.length(), content="2")
   inspect(result.get("NAME"), content="Some(\"MoonBit\")")
   inspect(result.get("VERSION"), content="Some(\"1.0\")")
 }
@@ -21,7 +21,7 @@ test "load_from_string with export option" {
   let content = "DEBUG=true\nLOG_LEVEL=info"
   let options = LoadOptions::with_export()
   let result = load_from_string(content, options~)
-  inspect(result.size(), content="2")
+  inspect(result.length(), content="2")
   inspect(result.get("DEBUG"), content="Some(\"true\")")
   inspect(result.get("LOG_LEVEL"), content="Some(\"info\")")
 }
@@ -67,8 +67,8 @@ test "round trip parsing and stringifying" {
   let reparsed = parse(stringified)
 
   // Should have the same number of entries
-  inspect(parsed.size(), content="3")
-  inspect(reparsed.size(), content="3")
+  inspect(parsed.length(), content="3")
+  inspect(reparsed.length(), content="3")
 
   // Values should be preserved
   inspect(reparsed.get("GREETING"), content="Some(\"hello world\")")

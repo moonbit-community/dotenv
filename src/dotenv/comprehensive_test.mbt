@@ -6,7 +6,7 @@ test "parse() comprehensive test using .env.test file format" {
 
   // Test that we parse the expected number of valid keys (26 from Deno std test)
   // Note: 1INVALID should be skipped due to invalid key pattern
-  inspect(load.size(), content="26")
+  inspect(load.length(), content="26")
 
   // Basic tests
   inspect(load.get("BASIC"), content="Some(\"basic\")")
@@ -229,7 +229,7 @@ test "parse() result is not affected by Map prototype pollution" {
   let result = parse("bar=1")
 
   // Should only contain the parsed key
-  inspect(result.size(), content="1")
+  inspect(result.length(), content="1")
   inspect(result.get("bar"), content="Some(\"1\")")
 
   // Should not contain any prototype pollution
@@ -278,7 +278,7 @@ test "LoadOptions functionality" {
 test "load_from_string functionality" {
   let content = "GREETING=hello world\nPORT=3000\nDEBUG=true"
   let conf = load_from_string(content)
-  inspect(conf.size(), content="3")
+  inspect(conf.length(), content="3")
   inspect(conf.get("GREETING"), content="Some(\"hello world\")")
   inspect(conf.get("PORT"), content="Some(\"3000\")")
   inspect(conf.get("DEBUG"), content="Some(\"true\")")
@@ -286,6 +286,6 @@ test "load_from_string functionality" {
   // Test with export option
   let export_opts = LoadOptions::with_export()
   let conf_export = load_from_string(content, options=export_opts)
-  inspect(conf_export.size(), content="3")
+  inspect(conf_export.length(), content="3")
   inspect(conf_export.get("GREETING"), content="Some(\"hello world\")")
 }

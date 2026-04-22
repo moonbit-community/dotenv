@@ -9,7 +9,7 @@ pub fn run_demo() -> Unit {
 
   // Demo async functionality
   println("\n--- Async File Operations ---")
-  @async.with_event_loop(fn(_) { demo_async_features() }) catch {
+  @async.with_event_loop(async fn(_) { demo_async_features() }) catch {
     err => println("Async demo error: \{err}")
   }
   println("\n=== Demo Complete ===")

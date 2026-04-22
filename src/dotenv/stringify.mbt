@@ -28,7 +28,7 @@ fn contains_single_quote(str : String) -> Bool {
 fn contains_non_word(str : String) -> Bool {
   for i = 0; i < str.length(); i = i + 1 {
     let ch = str[i]
-    if not(is_alnum(ch) || ch == 95) { // '_' = 95
+    if !(is_alnum(ch) || ch == 95) { // '_' = 95
       return true
     }
   }

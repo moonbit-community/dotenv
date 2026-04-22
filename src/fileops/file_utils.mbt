@@ -53,7 +53,7 @@ pub fn validate_env_content_format(content : String) -> (Bool, Array[String]) {
   for i = 0; i < line_views.length(); i = i + 1 {
     let line_view = line_views[i]
     let line_str = line_view.to_string()
-    let line = line_str.trim_space()
+    let line = line_str.trim()
     let line_num = i + 1
 
     // 跳过空行和注释行
@@ -62,7 +62,7 @@ pub fn validate_env_content_format(content : String) -> (Bool, Array[String]) {
     }
 
     // 检查是否包含等号
-    if not(line.contains("=")) {
+    if !(line.contains("=")) {
       errors.push("行 \{line_num}: 缺少等号 - '\{line}'")
       is_valid = false
     }

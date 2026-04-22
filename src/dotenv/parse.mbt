@@ -218,12 +218,12 @@ fn is_valid_key(key : String) -> Bool {
     return false
   }
   let first = key[0]
-  if not(is_alpha(first) || first == 95) { // '_' = 95
+  if !(is_alpha(first) || first == 95) { // '_' = 95
     return false
   }
   for i = 1; i < key.length(); i = i + 1 {
     let c = key[i]
-    if not(is_alnum(c) || c == 95) { // '_' = 95
+    if !(is_alnum(c) || c == 95) { // '_' = 95
       return false
     }
   }

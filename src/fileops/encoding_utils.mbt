@@ -11,7 +11,7 @@ pub fn string_to_utf8_bytes(str : String) -> Bytes {
 
 ///|
 /// 将 UTF-8 Bytes 转换为 String
-pub fn utf8_bytes_to_string(bytes : @bytes.View) -> String {
+pub fn utf8_bytes_to_string(bytes : BytesView) -> String {
   @encoding.decode(bytes, encoding=UTF8) catch {
     _ => {
       // Fallback to ASCII conversion if UTF-8 decode fails

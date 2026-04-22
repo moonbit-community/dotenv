@@ -63,7 +63,7 @@ pub async fn demo_error_handling() -> Unit raise {
   write_file_content("bad.env", bad_content)
   let (is_valid, errors) = validate_env_file_format("bad.env")
   println("✓ 格式验证结果: 有效=\{is_valid}")
-  if not(is_valid) {
+  if !(is_valid) {
     println("  发现的错误:")
     for error in errors {
       println("    \{error}")
