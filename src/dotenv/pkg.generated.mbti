@@ -1,0 +1,60 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "allwefantasy/dotenv/dotenv"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn auto_load() -> Unit
+
+pub fn auto_load_compat() -> Unit
+
+pub async fn file_exists_async(String) -> Bool noraise
+
+pub async fn load(options? : LoadOptions) -> Map[String, String] noraise
+
+pub async fn load_compat(options? : LoadOptions) -> Map[String, String] noraise
+
+pub fn load_from_string(String, options? : LoadOptions) -> Map[String, String]
+
+pub fn load_options_compat(env_path? : String?, export_vars? : Bool) -> LoadOptions
+
+pub fn load_sync(options? : LoadOptions) -> Map[String, String]
+
+pub fn load_sync_compat(options? : LoadOptions) -> Map[String, String]
+
+pub fn parse(String) -> Map[String, String]
+
+pub fn parse_compat(String) -> Map[String, String]
+
+pub async fn parse_file_async(String) -> Map[String, String] noraise
+
+pub fn parse_file_sync_mock(String) -> Map[String, String]
+
+pub fn stringify(Map[String, String]) -> String
+
+pub fn stringify_compat(Map[String, String]) -> String
+
+pub async fn write_file_async(String, Map[String, String], permission? : Int) -> Unit
+
+pub async fn write_file_safe_async(String, Map[String, String], backup_suffix? : String) -> Unit
+
+// Errors
+
+// Types and methods
+#alias(LoadOptionsCompat)
+pub struct LoadOptions {
+  env_path : String?
+  export_vars : Bool
+} derive(Default, Eq, @debug.Debug)
+pub fn LoadOptions::default() -> Self
+pub fn LoadOptions::no_file() -> Self
+pub fn LoadOptions::with_export() -> Self
+pub fn LoadOptions::with_path(String) -> Self
+pub fn LoadOptions::with_path_and_export(String) -> Self
+
+// Type aliases
+
+// Traits
+

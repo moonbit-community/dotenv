@@ -1,0 +1,67 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "allwefantasy/dotenv/fileops"
+
+// Values
+pub async fn append_file_content(String, String) -> Unit
+
+pub async fn copy_file(String, String) -> Unit
+
+pub async fn delete_file(String) -> Unit
+
+pub async fn demo_basic_file_ops() -> Unit
+
+pub async fn demo_error_handling() -> Unit
+
+pub async fn ensure_directory(String) -> Unit raise DirectoryError
+
+pub async fn file_exists(String) -> Bool noraise
+
+pub async fn file_stats(String) -> (Int, Int, Int64)
+
+pub async fn find_env_files(String) -> Array[String]
+
+pub async fn find_lines_with_pattern(String, String) -> Array[(Int, String)]
+
+pub async fn get_file_info(String) -> (Int64, String)
+
+pub async fn monitor_file_size(String, check_interval_ms? : Int, max_checks? : Int) -> Array[Int64]
+
+pub async fn read_directory(String) -> Array[String]
+
+pub async fn read_env_file_content(String) -> String
+
+pub async fn read_env_file_raw(String) -> String
+
+pub async fn read_file_content(String) -> String
+
+pub async fn read_line_range(String, Int, Int) -> Array[String]
+
+pub async fn read_lines(String) -> Array[String]
+
+pub async fn read_lines_buffered(String) -> Array[String]
+
+pub async fn run_all_demos() -> Unit
+
+pub fn string_to_utf8_bytes(String) -> Bytes
+
+pub fn utf8_bytes_to_string(BytesView) -> String
+
+pub fn validate_env_content_format(String) -> (Bool, Array[String])
+
+pub async fn validate_env_file_format(String) -> (Bool, Array[String])
+
+pub async fn write_env_file_raw(String, String, permission? : Int) -> Unit
+
+pub async fn write_env_file_safe(String, String, backup_suffix? : String) -> Unit
+
+pub async fn write_file_content(String, String, permission? : Int) -> Unit
+
+// Errors
+type DirectoryError
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+
