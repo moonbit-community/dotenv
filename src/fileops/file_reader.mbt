@@ -24,7 +24,7 @@
 /// 
 /// # 错误
 /// 如果文件不存在或读取失败，会抛出异常
-pub async fn read_file_content(file_path : String) -> String raise {
+pub async fn read_file_content(file_path : String) -> String {
   let file = @fs.open(string_to_utf8_bytes(file_path), mode=ReadOnly)
   defer file.close()
   let content = file.read_all()
@@ -42,7 +42,7 @@ pub async fn read_file_content(file_path : String) -> String raise {
 /// 
 /// # 注意
 /// 这个函数只负责文件读取，不进行解析。解析需要使用 dotenv 包的 parse 函数。
-pub async fn read_env_file_raw(env_file_path : String) -> String raise {
+pub async fn read_env_file_raw(env_file_path : String) -> String {
   read_env_file_content(env_file_path)
 }
 
@@ -54,7 +54,7 @@ pub async fn read_env_file_raw(env_file_path : String) -> String raise {
 /// 
 /// # 返回值
 /// 原始文件内容字符串
-pub async fn read_env_file_content(env_file_path : String) -> String raise {
+pub async fn read_env_file_content(env_file_path : String) -> String {
   read_file_content(env_file_path)
 }
 
@@ -84,7 +84,7 @@ pub async fn file_exists(file_path : String) -> Bool noraise {
 /// 
 /// # 返回值
 /// 包含文件大小和类型的元组
-pub async fn get_file_info(file_path : String) -> (Int64, String) raise {
+pub async fn get_file_info(file_path : String) -> (Int64, String) {
   let file = @fs.open(string_to_utf8_bytes(file_path), mode=ReadOnly)
   defer file.close()
   let size = file.size()
@@ -107,7 +107,7 @@ pub async fn get_file_info(file_path : String) -> (Int64, String) raise {
 /// 
 /// # 返回值
 /// 目录中文件名的数组（UTF-8 解码）
-pub async fn read_directory(dir_path : String) -> Array[String] raise {
+pub async fn read_directory(dir_path : String) -> Array[String] {
   let dir_file = @fs.open(string_to_utf8_bytes(dir_path), mode=ReadOnly)
   defer dir_file.close()
   let dir = dir_file.as_dir()
@@ -127,7 +127,7 @@ pub async fn read_directory(dir_path : String) -> Array[String] raise {
 /// 
 /// # 返回值
 /// .env 文件路径的数组
-pub async fn find_env_files(dir_path : String) -> Array[String] raise {
+pub async fn find_env_files(dir_path : String) -> Array[String] {
   let files = read_directory(dir_path)
   let env_files = Array::new()
   for file in files {

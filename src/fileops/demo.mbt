@@ -4,7 +4,7 @@
 
 ///|
 /// 演示基本文件读写操作
-pub async fn demo_basic_file_ops() -> Unit raise {
+pub async fn demo_basic_file_ops() -> Unit {
   println("=== 基本文件操作演示 ===")
 
   // 创建测试内容
@@ -37,7 +37,7 @@ pub async fn demo_basic_file_ops() -> Unit raise {
 
 ///|
 /// 演示错误处理
-pub async fn demo_error_handling() -> Unit raise {
+pub async fn demo_error_handling() -> Unit {
   println("\n=== 错误处理演示 ===")
 
   // 尝试读取不存在的文件
@@ -63,7 +63,7 @@ pub async fn demo_error_handling() -> Unit raise {
   write_file_content("bad.env", bad_content)
   let (is_valid, errors) = validate_env_file_format("bad.env")
   println("✓ 格式验证结果: 有效=\{is_valid}")
-  if !(is_valid) {
+  if !is_valid {
     println("  发现的错误:")
     for error in errors {
       println("    \{error}")
@@ -74,7 +74,7 @@ pub async fn demo_error_handling() -> Unit raise {
 
 ///|
 /// 主演示函数
-pub async fn run_all_demos() -> Unit raise {
+pub async fn run_all_demos() -> Unit {
   println("开始异步文件操作演示...")
   demo_basic_file_ops()
   demo_error_handling()

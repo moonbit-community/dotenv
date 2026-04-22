@@ -112,7 +112,7 @@ async fn cleanup_test_files() -> Unit noraise {
 ///|
 /// 主示例函数
 fn main {
-  @async.with_event_loop(_ =>  {
+  @async.with_event_loop(_ => {
     println("开始异步文件操作应用示例...\n")
     config_manager_example()
     file_operations_example()

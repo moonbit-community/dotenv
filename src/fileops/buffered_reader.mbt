@@ -15,7 +15,7 @@
 /// 
 /// # 错误
 /// 如果读取失败会抛出异常
-pub async fn read_lines_buffered(file_path : String) -> Array[String] raise {
+pub async fn read_lines_buffered(file_path : String) -> Array[String] {
   let file = @fs.open(string_to_utf8_bytes(file_path), mode=ReadOnly)
   defer file.close()
 
@@ -63,7 +63,7 @@ pub async fn read_lines_buffered(file_path : String) -> Array[String] raise {
 pub async fn find_lines_with_pattern(
   file_path : String,
   pattern : String,
-) -> Array[(Int, String)] raise {
+) -> Array[(Int, String)] {
   let lines = read_lines_buffered(file_path)
   let matches = Array::new()
   for i = 0; i < lines.length(); i = i + 1 {
@@ -89,7 +89,7 @@ pub async fn read_line_range(
   file_path : String,
   start_line : Int,
   end_line : Int,
-) -> Array[String] raise {
+) -> Array[String] {
   let lines = read_lines_buffered(file_path)
   let result = Array::new()
   let start_idx = start_line - 1 // 转换为0索引
@@ -113,7 +113,7 @@ pub async fn read_line_range(
 /// 
 /// # 返回值
 /// (行数, 字符数, 字节数) 的元组
-pub async fn file_stats(file_path : String) -> (Int, Int, Int64) raise {
+pub async fn file_stats(file_path : String) -> (Int, Int, Int64) {
   let file = @fs.open(string_to_utf8_bytes(file_path), mode=ReadOnly)
   defer file.close()
   let content = file.read_all()
@@ -139,7 +139,7 @@ pub async fn monitor_file_size(
   file_path : String,
   check_interval_ms? : Int = 1000,
   max_checks? : Int = 10,
-) -> Array[Int64] raise {
+) -> Array[Int64] {
   let sizes = Array::new()
   for i = 0; i < max_checks; i = i + 1 {
     if file_exists(file_path) {

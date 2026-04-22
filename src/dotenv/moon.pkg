@@ -1,0 +1,5 @@
+import {
+  "allwefantasy/dotenv/fileops",
+}
+
+supported_targets = "native"

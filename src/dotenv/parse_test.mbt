@@ -1,4 +1,5 @@
-///| Tests for the dotenv parse module
+///|
+/// Tests for the dotenv parse module
 test "parse basic functionality" {
   let env_content = "GREETING=hello world\nNAME=MoonBit"
   let result = parse(env_content)
@@ -83,7 +84,8 @@ test "parse handles complex example" {
   inspect(result.get("EMPTY"), content="Some(\"\")")
 }
 
-///| Test variable expansion functionality
+///|
+/// Test variable expansion functionality
 test "parse expands variables" {
   let env_content = "THE_ANSWER=42\nEXPAND_VAR=$THE_ANSWER"
   let result = parse(env_content)
@@ -182,7 +184,8 @@ test "parse handles default with special characters" {
   )
 }
 
-///| Test comprehensive .env.test file parsing to match reference implementation
+///|
+/// Test comprehensive .env.test file parsing to match reference implementation
 test "parse handles complete .env.test file" {
   let test_content = "BASIC=basic\n\nAFTER_EMPTY=empty\n#COMMENT=not-parsed\nEMPTY_VALUE=\nQUOTED_SINGLE='single quoted'\nQUOTED_DOUBLE=\"double quoted\"\nEMPTY_SINGLE=''\nEMPTY_DOUBLE=\"\"\n\nMULTILINE1=\"hello\\nworld\"\nMULTILINE2=\"hello\\r\\nworld\"\nJSON='{\"foo\": \"bar\"}'\nWHITESPACE='    whitespace   '\nWHITESPACE_DOUBLE=\"    whitespace   \"\nMULTILINE_SINGLE_QUOTE1='hello\\nworld'\nMULTILINE_SINGLE_QUOTE2='hello\\r\\nworld'\nEQUALS='equ==als'\nTHE_ANSWER=42\n\nVAR_WITH_SPACE = 'var with space'\nVAR_WITH_ENDING_WHITESPACE\t=value\nV4R_W1TH_NUM8ER5='var with numbers'\n1INVALID=var starting with a number\n\n  INDENTED_VAR='indented var'\n  INDENTED_VALUE=  indented value\n\tTAB_INDENTED_VAR='indented var'\n\tTAB_INDENTED_VALUE=\tindented value\n\nPRIVATE_KEY_SINGLE_QUOTED='\n-----BEGIN RSA PRIVATE KEY-----\n...\nHkVN9...\n...\n-----END DSA PRIVATE KEY-----\n'\n\nPRIVATE_KEY_DOUBLE_QUOTED=\"\n-----BEGIN RSA PRIVATE KEY-----\n...\nHkVN9...\n...\n-----END DSA PRIVATE KEY-----\n\"\n\nexport EXPORT_IS_IGNORED='export is ignored'"
   let result = parse(test_content)
@@ -248,7 +251,8 @@ test "parse handles complete .env.test file" {
   )
 }
 
-///| Test comments parsing
+///|
+/// Test comments parsing
 test "parse ignores comments correctly" {
   let comments_content = "# This is a comment\nFOO=bar # This is an inline comment\nGREETING= \"hello world\" # hello world\nSPECIAL_CHARACTERS_UNQUOTED=123 #Some text !@# [] \nSPECIAL_CHARACTERS_UNQUOTED_NO_SPACES=123#Some text !@# [] "
   let result = parse(comments_content)
@@ -261,7 +265,8 @@ test "parse ignores comments correctly" {
   )
 }
 
-///| Test comprehensive variable expansion from .env.expand.test
+///|
+/// Test comprehensive variable expansion from .env.expand.test
 test "parse handles comprehensive expansion" {
   let expand_content = "THE_ANSWER=42\n\nQUOTED_SINGLE='single quoted'\n\nQUOTED_DOUBLE=\"double quoted\"\n\nEXPAND_VAR=$THE_ANSWER\n\nEXPAND_TWO_VARS=$QUOTED_SINGLE!==$QUOTED_DOUBLE\n\nEXPAND_RECURSIVE=$EXPAND_TWO_VARS\n\nEXPAND_DEFAULT_TRUE=$NO_SUCH_VAR:-default\n\nEXPAND_DEFAULT_FALSE=$THE_ANSWER:-default\n\nEXPAND_DEFAULT_VAR=$NO_SUCH_VAR:-$THE_ANSWER:-default\n\nEXPAND_DEFAULT_VAR_RECURSIVE=$NO_SUCH_VAR:-$EXPAND_TWO_VARS:-default\n\nEXPAND_DEFAULT_VAR_DEFAULT=$NO_SUCH_VAR:-$NO_SUCH_VAR:-default\n\nEXPAND_DEFAULT_WITH_SPECIAL_CHARACTERS=$UNDEFINED_ENV_KEY:-/default/path\n\nEXPAND_VAR_IN_BRACKETS=${THE_ANSWER}\n\nEXPAND_TWO_VARS_IN_BRACKETS=${QUOTED_SINGLE}!==${QUOTED_DOUBLE}\n\nEXPAND_RECURSIVE_VAR_IN_BRACKETS=${EXPAND_TWO_VARS_IN_BRACKETS}\n\nEXPAND_DEFAULT_IN_BRACKETS_TRUE=${NO_SUCH_VAR:-default}\n\nEXPAND_DEFAULT_IN_BRACKETS_FALSE=${THE_ANSWER:-default}\n\nEXPAND_DEFAULT_VAR_IN_BRACKETS=${NO_SUCH_VAR:-${THE_ANSWER:-default}}\n\nEXPAND_DEFAULT_VAR_IN_BRACKETS_RECURSIVE=${NO_SUCH_VAR:-${EXPAND_TWO_VARS:-default}}\n\nEXPAND_DEFAULT_VAR_IN_BRACKETS_DEFAULT=${NO_SUCH_VAR:-${NO_SUCH_VAR:-default}}\n\nEXPAND_DEFAULT_IN_BRACKETS_WITH_SPECIAL_CHARACTERS=${UNDEFINED_ENV_KEY:-/default/path}\n\nEXPAND_ESCAPED=\\$THE_ANSWER\n\nEXPAND_WITH_DIFFERENT_STYLES=${QUOTED_SINGLE}!==$QUOTED_DOUBLE"
   let result = parse(expand_content)

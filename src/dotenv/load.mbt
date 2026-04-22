@@ -30,7 +30,7 @@ pub async fn write_file_async(
   filepath : String,
   env_vars : Map[String, String],
   permission? : Int = 0o644,
-) -> Unit raise {
+) -> Unit {
   let content = stringify(env_vars)
   @fileops.write_env_file_raw(filepath, content, permission~)
 }
@@ -45,7 +45,7 @@ pub async fn write_file_safe_async(
   filepath : String,
   env_vars : Map[String, String],
   backup_suffix? : String = ".backup",
-) -> Unit raise {
+) -> Unit {
   let content = stringify(env_vars)
   @fileops.write_env_file_safe(filepath, content, backup_suffix~)
 }

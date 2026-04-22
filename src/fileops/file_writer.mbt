@@ -2,7 +2,9 @@
 /// 异步文件写入器
 ///
 /// 提供异步文件写入功能，特别针对 .env 文件的写入和备份操作
-suberror DirectoryError { DirectoryError(String) }
+suberror DirectoryError {
+  DirectoryError(String)
+}
 
 // Encoding utilities are now in encoding_utils.mbt
 
@@ -20,7 +22,7 @@ pub async fn write_file_content(
   file_path : String,
   content : String,
   permission? : Int = 0o644,
-) -> Unit raise {
+) -> Unit {
   let file = @fs.create(string_to_utf8_bytes(file_path), permission~, sync=Full)
   defer file.close()
   file.write(string_to_utf8_bytes(content))
@@ -43,7 +45,7 @@ pub async fn write_env_file_raw(
   env_file_path : String,
   env_content : String,
   permission? : Int = 0o644,
-) -> Unit raise {
+) -> Unit {
   write_file_content(env_file_path, env_content, permission~)
 }
 
@@ -64,7 +66,7 @@ pub async fn write_env_file_safe(
   env_file_path : String,
   env_content : String,
   backup_suffix? : String = ".backup",
-) -> Unit raise {
+) -> Unit {
   let backup_path = env_file_path + backup_suffix
 
   // 如果原文件存在，先创建备份
@@ -95,10 +97,7 @@ pub async fn write_env_file_safe(
 /// 
 /// # 错误
 /// 如果操作失败会抛出异常
-pub async fn append_file_content(
-  file_path : String,
-  content : String,
-) -> Unit raise {
+pub async fn append_file_content(file_path : String, content : String) -> Unit {
   let file = @fs.open(
     string_to_utf8_bytes(file_path),
     mode=WriteOnly,
@@ -129,7 +128,7 @@ pub async fn ensure_directory(dir_path : String) -> Unit raise DirectoryError {
   } catch {
     _ => false
   }
-  if !(exists) {
+  if !exists {
     // 注意：这里只是演示，实际的目录创建需要系统调用
     // 在真实项目中，你可能需要使用 @process.run 来调用 mkdir
     raise DirectoryError(
@@ -146,7 +145,7 @@ pub async fn ensure_directory(dir_path : String) -> Unit raise DirectoryError {
 /// 
 /// # 错误
 /// 如果删除失败会抛出异常
-pub async fn delete_file(file_path : String) -> Unit raise {
+pub async fn delete_file(file_path : String) -> Unit {
   @fs.remove(string_to_utf8_bytes(file_path))
 }
 
@@ -159,7 +158,7 @@ pub async fn delete_file(file_path : String) -> Unit raise {
 /// 
 /// # 错误
 /// 如果复制失败会抛出异常
-pub async fn copy_file(source_path : String, dest_path : String) -> Unit raise {
+pub async fn copy_file(source_path : String, dest_path : String) -> Unit {
   let content = read_file_content(source_path)
   write_file_content(dest_path, content)
 }

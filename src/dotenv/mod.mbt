@@ -272,7 +272,7 @@ pub fn auto_load() -> Unit {
 
   // Check if we have file system capabilities (mock check)
   let has_file_system = true // In reality, this would check runtime capabilities
-  if !(has_file_system) {
+  if !has_file_system {
     println(
       "Warning: File system read is not available: No .env data was read.",
     )
