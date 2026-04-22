@@ -23,17 +23,17 @@ fn trim_string(str : String) -> String {
   if start == 0 && end == str.length() {
     str
   } else {
-    str.substring(start~, end~)
+    str[start:end].to_string()
   }
 }
 
-///| Check if a character (as Int codepoint) is whitespace
-fn is_whitespace(ch : Int) -> Bool {
+///| Check if a character (as UTF-16 code unit) is whitespace
+fn is_whitespace(ch : UInt16) -> Bool {
   ch == 32 || ch == 9 || ch == 13 || ch == 10 // space, tab, CR, LF
 }
 
 ///| Find the index of a character in a string
-fn index_of_char(str : String, ch : Int) -> Int? {
+fn index_of_char(str : String, ch : UInt16) -> Int? {
   for i = 0; i < str.length(); i = i + 1 {
     if str[i] == ch {
       return Some(i)
@@ -82,12 +82,12 @@ fn expand_characters(str : String) -> String {
           i = i + 2
         }
         _ => {
-          result = result + str.substring(start=i, end=i + 1)
+          result = result + str[i:i + 1].to_string()
           i = i + 1
         }
       }
     } else {
-      result = result + str.substring(start=i, end=i + 1)
+      result = result + str[i:i + 1].to_string()
       i = i + 1
     }
   }
@@ -121,7 +121,7 @@ fn expand_variables(
           j = j + 1
         }
         if depth == 0 {
-          let var_expr = str.substring(start=i + 2, end=j - 1)
+          let var_expr = str[i + 2:j - 1].to_string()
           let expanded = expand_variable_expression(var_expr, variables_map)
           result = result + expanded
           i = j
@@ -144,8 +144,8 @@ fn expand_variables(
           while k < str.length() && str[k] != 32 && str[k] != 10 && str[k] != 13 {
             k = k + 1
           }
-          let var_name = str.substring(start=i + 1, end=j)
-          let default_value = str.substring(start=j + 2, end=k)
+          let var_name = str[i + 1:j].to_string()
+          let default_value = str[j + 2:k].to_string()
           let expanded_default = expand_variables(default_value, variables_map)
           match variables_map.get(var_name) {
             Some(value) => result = result + value
@@ -153,7 +153,7 @@ fn expand_variables(
           }
           i = k
         } else {
-          let var_name = str.substring(start=i + 1, end=j)
+          let var_name = str[i + 1:j].to_string()
           let value = get_variable_value(var_name, variables_map)
           result = result + value
           i = j
@@ -164,7 +164,7 @@ fn expand_variables(
         i = i + 1
       }
     } else {
-      result = result + str.substring(start=i, end=i + 1)
+      result = result + str[i:i + 1].to_string()
       i = i + 1
     }
   }
@@ -179,8 +179,8 @@ fn expand_variable_expression(
   // Check for default value syntax: VAR:-default
   match index_of_substring(expr, ":-") {
     Some(pos) => {
-      let var_name = expr.substring(start=0, end=pos)
-      let default_value = expr.substring(start=pos + 2)
+      let var_name = expr[:pos].to_string()
+      let default_value = expr[pos + 2:].to_string()
       let expanded_default = expand_variables(default_value, variables_map)
       match variables_map.get(var_name) {
         Some(value) => value
@@ -203,12 +203,12 @@ fn get_variable_value(
 }
 
 ///| Check if a character can start a variable name
-fn is_var_start_char(ch : Int) -> Bool {
+fn is_var_start_char(ch : UInt16) -> Bool {
   is_alpha(ch) || ch == 95 // letter or underscore
 }
 
 ///| Check if a character can be part of a variable name
-fn is_var_char(ch : Int) -> Bool {
+fn is_var_char(ch : UInt16) -> Bool {
   is_alnum(ch) || ch == 95 // letter, digit, or underscore
 }
 
@@ -230,13 +230,13 @@ fn is_valid_key(key : String) -> Bool {
   true
 }
 
-///| Check if character (as Int codepoint) is alphabetic
-fn is_alpha(ch : Int) -> Bool {
+///| Check if character (as UTF-16 code unit) is alphabetic
+fn is_alpha(ch : UInt16) -> Bool {
   (ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122) // A-Z or a-z
 }
 
-///| Check if character (as Int codepoint) is alphanumeric
-fn is_alnum(ch : Int) -> Bool {
+///| Check if character (as UTF-16 code unit) is alphanumeric
+fn is_alnum(ch : UInt16) -> Bool {
   is_alpha(ch) || (ch >= 48 && ch <= 57) // 0-9
 }
 
@@ -341,7 +341,7 @@ fn parse_kv_pair(
   let mut i = start_pos
 
   // Skip export prefix
-  if i + 7 < text.length() && text.substring(start=i, end=i + 7) == "export " {
+  if i + 7 < text.length() && text[i:i + 7].to_string() == "export " {
     i = i + 7
     while i < text.length() && is_whitespace(text[i]) {
       i = i + 1
@@ -356,7 +356,7 @@ fn parse_kv_pair(
   if i == key_start {
     return None // No key found
   }
-  let key = text.substring(start=key_start, end=i)
+  let key = text[key_start:i].to_string()
 
   // Skip whitespace
   while i < text.length() && (text[i] == 32 || text[i] == 9) { // space or tab
@@ -399,7 +399,7 @@ fn parse_value_at_pos(text : String, start_pos : Int) -> (String, Bool, Int)? {
 
     // Find closing quote, allowing for newlines
     while i < text.length() && text[i] != 39 {
-      content = content + text.substring(start=i, end=i + 1)
+      content = content + text[i:i + 1].to_string()
       i = i + 1
     }
     if i >= text.length() {
@@ -440,7 +440,7 @@ fn parse_value_at_pos(text : String, start_pos : Int) -> (String, Bool, Int)? {
         content = content + "\""
         i = i + 2
       } else {
-        content = content + text.substring(start=i, end=i + 1)
+        content = content + text[i:i + 1].to_string()
         i = i + 1
       }
     }
@@ -477,11 +477,11 @@ fn parse_value_at_pos(text : String, start_pos : Int) -> (String, Bool, Int)? {
   while i < text.length() && text[i] != 10 && text[i] != 13 && text[i] != 35 { // not newline or #
     i = i + 1
   }
-  let mut value = text.substring(start=value_start, end=i)
+  let mut value = text[value_start:i].to_string()
 
   // Handle inline comments
   match index_of_char(value, 35) { // '#' = 35
-    Some(pos) => value = value.substring(start=0, end=pos)
+    Some(pos) => value = value[:pos].to_string()
     None => ()
   }
   value = trim_string(value)
