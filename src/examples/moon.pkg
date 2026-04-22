@@ -1,0 +1,11 @@
+import {
+  "moonbitlang/async",
+  "allwefantasy/dotenv/dotenv",
+  "allwefantasy/dotenv/fileops",
+}
+
+supported_targets = "native"
+
+options(
+  "is-main": true,
+)

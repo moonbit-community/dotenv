@@ -1,4 +1,5 @@
-///| Comprehensive tests for the dotenv module matching Deno std library behavior
+///|
+/// Comprehensive tests for the dotenv module matching Deno std library behavior
 test "parse() comprehensive test using .env.test file format" {
   // This mimics the comprehensive test from the Deno std library
   let test_dotenv = "BASIC=basic\n\nAFTER_EMPTY=empty\n#COMMENT=not-parsed\nEMPTY_VALUE=\nQUOTED_SINGLE='single quoted'\nQUOTED_DOUBLE=\"double quoted\"\nEMPTY_SINGLE=''\nEMPTY_DOUBLE=\"\"\n\nMULTILINE1=\"hello\\nworld\"\nMULTILINE2=\"hello\\r\\nworld\"\nJSON='{\"foo\": \"bar\"}'\nWHITESPACE='    whitespace   '\nWHITESPACE_DOUBLE=\"    whitespace   \"\nMULTILINE_SINGLE_QUOTE1='hello\\nworld'\nMULTILINE_SINGLE_QUOTE2='hello\\r\\nworld'\nEQUALS='equ==als'\nTHE_ANSWER=42\n\nVAR_WITH_SPACE = 'var with space'\nVAR_WITH_ENDING_WHITESPACE\t=value\nV4R_W1TH_NUM8ER5='var with numbers'\n1INVALID=var starting with a number\n\n  INDENTED_VAR='indented var'\n  INDENTED_VALUE=  indented value\n\tTAB_INDENTED_VAR='indented var'\n\tTAB_INDENTED_VALUE=\tindented value\n\nPRIVATE_KEY_SINGLE_QUOTED='\n-----BEGIN RSA PRIVATE KEY-----\n...\nHkVN9...\n...\n-----END DSA PRIVATE KEY-----\n'\n\nPRIVATE_KEY_DOUBLE_QUOTED=\"\n-----BEGIN RSA PRIVATE KEY-----\n...\nHkVN9...\n...\n-----END DSA PRIVATE KEY-----\n\"\n\nexport EXPORT_IS_IGNORED='export is ignored'"
@@ -120,9 +121,12 @@ test "parse() expands variables comprehensively" {
   )
 
   // Bracket notation
-  inspect(load.get("EXPAND_VAR_IN_BRACKETS"), content=(
-    #|Some("${THE_ANSWER}")
-  ))
+  inspect(
+    load.get("EXPAND_VAR_IN_BRACKETS"),
+    content=(
+      #|Some("${THE_ANSWER}")
+    ),
+  )
   inspect(
     load.get("EXPAND_TWO_VARS_IN_BRACKETS"),
     content=(
@@ -143,12 +147,18 @@ test "parse() expands variables comprehensively" {
       #|Some("${NO_SUCH_VAR:-default}")
     ),
   )
-  inspect(load.get("EXPAND_DEFAULT_IN_BRACKETS_FALSE"), content=(
-    #|Some("${THE_ANSWER:-default}")
-  ))
-  inspect(load.get("EXPAND_DEFAULT_VAR_IN_BRACKETS"), content=(
-    #|Some("${NO_SUCH_VAR:-${THE_ANSWER:-default}}")
-  ))
+  inspect(
+    load.get("EXPAND_DEFAULT_IN_BRACKETS_FALSE"),
+    content=(
+      #|Some("${THE_ANSWER:-default}")
+    ),
+  )
+  inspect(
+    load.get("EXPAND_DEFAULT_VAR_IN_BRACKETS"),
+    content=(
+      #|Some("${NO_SUCH_VAR:-${THE_ANSWER:-default}}")
+    ),
+  )
   inspect(
     load.get("EXPAND_DEFAULT_VAR_IN_BRACKETS_RECURSIVE"),
     content=(
@@ -169,9 +179,12 @@ test "parse() expands variables comprehensively" {
   )
 
   // Escaped variables
-  inspect(load.get("EXPAND_ESCAPED"), content=(
-    #|Some("\\$THE_ANSWER")
-  ))
+  inspect(
+    load.get("EXPAND_ESCAPED"),
+    content=(
+      #|Some("\\$THE_ANSWER")
+    ),
+  )
 
   // Mixed styles
   inspect(
@@ -249,9 +262,12 @@ test "stringify() produces output that can be round-tripped" {
   let reparsed = parse(stringified)
   inspect(reparsed.get("BASIC"), content="Some(\"basic\")")
   inspect(reparsed.get("QUOTED"), content="Some(\"hello world\")")
-  inspect(reparsed.get("MULTILINE"), content=(
-    #|Some("line1\\\nline2")
-  ))
+  inspect(
+    reparsed.get("MULTILINE"),
+    content=(
+      #|Some("line1\\\nline2")
+    ),
+  )
   inspect(reparsed.get("SPECIAL"), content="Some(\"value with spaces\")")
 }
 

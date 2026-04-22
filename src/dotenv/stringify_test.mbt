@@ -1,4 +1,5 @@
-///| Tests for the dotenv stringify module
+///|
+/// Tests for the dotenv stringify module
 test "stringify basic functionality" {
   let env : Map[String, String] = Map::new()
   env["GREETING"] = "hello world"

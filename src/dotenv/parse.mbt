@@ -6,7 +6,8 @@
 
 ///| It handles various formats including quoted values, comments, and variable expansion.
 
-///| Helper function to trim whitespace from both ends of a string
+///|
+/// Helper function to trim whitespace from both ends of a string
 fn trim_string(str : String) -> String {
   let mut start = 0
   let mut end = str.length()
@@ -27,12 +28,14 @@ fn trim_string(str : String) -> String {
   }
 }
 
-///| Check if a character (as UTF-16 code unit) is whitespace
+///|
+/// Check if a character (as UTF-16 code unit) is whitespace
 fn is_whitespace(ch : UInt16) -> Bool {
   ch == 32 || ch == 9 || ch == 13 || ch == 10 // space, tab, CR, LF
 }
 
-///| Find the index of a character in a string
+///|
+/// Find the index of a character in a string
 fn index_of_char(str : String, ch : UInt16) -> Int? {
   for i = 0; i < str.length(); i = i + 1 {
     if str[i] == ch {
@@ -42,7 +45,8 @@ fn index_of_char(str : String, ch : UInt16) -> Int? {
   None
 }
 
-///| Find the index of a substring in a string
+///|
+/// Find the index of a substring in a string
 fn index_of_substring(str : String, substr : String) -> Int? {
   if substr.length() == 0 {
     return Some(0)
@@ -62,7 +66,8 @@ fn index_of_substring(str : String, substr : String) -> Int? {
   None
 }
 
-///| Expand escape characters in a string
+///|
+/// Expand escape characters in a string
 fn expand_characters(str : String) -> String {
   let mut result = ""
   let mut i = 0
@@ -94,7 +99,8 @@ fn expand_characters(str : String) -> String {
   result
 }
 
-///| Expand variables in unquoted values, supporting $VAR and ${VAR} and ${VAR:-default} syntax
+///|
+/// Expand variables in unquoted values, supporting $VAR and ${VAR} and ${VAR:-default} syntax
 fn expand_variables(
   str : String,
   variables_map : Map[String, String],
@@ -171,7 +177,8 @@ fn expand_variables(
   result
 }
 
-///| Expand a variable expression (contents inside ${})
+///|
+/// Expand a variable expression (contents inside ${})
 fn expand_variable_expression(
   expr : String,
   variables_map : Map[String, String],
@@ -191,7 +198,8 @@ fn expand_variable_expression(
   }
 }
 
-///| Get the value of a variable, checking both the variables map and simulated environment
+///|
+/// Get the value of a variable, checking both the variables map and simulated environment
 fn get_variable_value(
   var_name : String,
   variables_map : Map[String, String],
@@ -202,17 +210,20 @@ fn get_variable_value(
   }
 }
 
-///| Check if a character can start a variable name
+///|
+/// Check if a character can start a variable name
 fn is_var_start_char(ch : UInt16) -> Bool {
   is_alpha(ch) || ch == 95 // letter or underscore
 }
 
-///| Check if a character can be part of a variable name
+///|
+/// Check if a character can be part of a variable name
 fn is_var_char(ch : UInt16) -> Bool {
   is_alnum(ch) || ch == 95 // letter, digit, or underscore
 }
 
-///| Check if key matches valid identifier pattern
+///|
+/// Check if key matches valid identifier pattern
 fn is_valid_key(key : String) -> Bool {
   if key.length() == 0 {
     return false
@@ -230,12 +241,14 @@ fn is_valid_key(key : String) -> Bool {
   true
 }
 
-///| Check if character (as UTF-16 code unit) is alphabetic
+///|
+/// Check if character (as UTF-16 code unit) is alphabetic
 fn is_alpha(ch : UInt16) -> Bool {
   (ch >= 65 && ch <= 90) || (ch >= 97 && ch <= 122) // A-Z or a-z
 }
 
-///| Check if character (as UTF-16 code unit) is alphanumeric
+///|
+/// Check if character (as UTF-16 code unit) is alphanumeric
 fn is_alnum(ch : UInt16) -> Bool {
   is_alpha(ch) || (ch >= 48 && ch <= 57) // 0-9
 }
@@ -262,7 +275,8 @@ fn is_alnum(ch : UInt16) -> Bool {
 
 ///| @param text The text to parse
 
-///| @returns The parsed environment variables as a Map
+///|
+/// @returns The parsed environment variables as a Map
 pub fn parse(text : String) -> Map[String, String] {
   let env : Map[String, String] = Map::new()
   let keys_for_expand_check : Array[String] = []
@@ -333,7 +347,8 @@ pub fn parse(text : String) -> Map[String, String] {
   env
 }
 
-///| Parse a key-value pair starting at position i
+///|
+/// Parse a key-value pair starting at position i
 fn parse_kv_pair(
   text : String,
   start_pos : Int,
@@ -385,7 +400,8 @@ fn parse_kv_pair(
   }
 }
 
-///| Parse value starting at position i, handling quotes and multiline
+///|
+/// Parse value starting at position i, handling quotes and multiline
 fn parse_value_at_pos(text : String, start_pos : Int) -> (String, Bool, Int)? {
   let mut i = start_pos
   if i >= text.length() {

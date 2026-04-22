@@ -1,4 +1,5 @@
-///| Tests for the main dotenv module
+///|
+/// Tests for the main dotenv module
 test "load_from_string basic functionality" {
   let content = "GREETING=hello world\nPORT=3000"
   let result = load_from_string(content)

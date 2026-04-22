@@ -4,7 +4,8 @@
 
 ///| This module provides functionality to stringify a Map into .env file format.
 
-///| Check if a string contains newlines
+///|
+/// Check if a string contains newlines
 fn contains_newline(str : String) -> Bool {
   for i = 0; i < str.length(); i = i + 1 {
     if str[i] == 10 { // '\n' = 10
@@ -14,7 +15,8 @@ fn contains_newline(str : String) -> Bool {
   false
 }
 
-///| Check if a string contains single quotes
+///|
+/// Check if a string contains single quotes
 fn contains_single_quote(str : String) -> Bool {
   for i = 0; i < str.length(); i = i + 1 {
     if str[i] == 39 { // '\'' = 39
@@ -24,7 +26,8 @@ fn contains_single_quote(str : String) -> Bool {
   false
 }
 
-///| Check if a string contains non-word characters (excluding alphanumeric and underscore)
+///|
+/// Check if a string contains non-word characters (excluding alphanumeric and underscore)
 fn contains_non_word(str : String) -> Bool {
   for i = 0; i < str.length(); i = i + 1 {
     let ch = str[i]
@@ -38,7 +41,8 @@ fn contains_non_word(str : String) -> Bool {
 ///| Check if character (as Int codepoint) is alphanumeric (using external function)
 // This function is defined in parse.mbt and is available in the same package
 
-///| Escape a string by replacing quotes with escaped quotes
+///|
+/// Escape a string by replacing quotes with escaped quotes
 fn escape_quotes(str : String, quote : String) -> String {
   let mut result = ""
   let quote_code : UInt16 = if quote == "'" { 39 } else { 34 } // ' or "
@@ -54,7 +58,8 @@ fn escape_quotes(str : String, quote : String) -> String {
   result
 }
 
-///| Escape newlines in a string
+///|
+/// Escape newlines in a string
 fn escape_newlines(str : String) -> String {
   let mut result = ""
   for i = 0; i < str.length(); i = i + 1 {
@@ -91,7 +96,8 @@ fn escape_newlines(str : String) -> String {
 
 ///| @param object Map to be stringified
 
-///| @returns String representation in .env format
+///|
+/// @returns String representation in .env format
 pub fn stringify(object : Map[String, String]) -> String {
   let lines : Array[String] = []
   for entry in object {

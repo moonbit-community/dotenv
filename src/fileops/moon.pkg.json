@@ -1,8 +1,0 @@
-{
-  "import": [
-    "moonbitlang/async",
-    "moonbitlang/async/fs",
-    "tonyfettes/encoding"
-  ],
-  "supported-targets": "native"
-}

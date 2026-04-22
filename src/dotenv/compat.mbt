@@ -7,6 +7,7 @@
 /// Options interface compatible with Deno std/dotenv
 ///
 /// This matches the LoadOptions interface from the Deno implementation
+
 ///|
 /// Create LoadOptions with Deno-compatible defaults
 pub fn load_options_compat(
@@ -59,7 +60,7 @@ pub fn load_sync_compat(
 /// Note: The key needs to match the pattern /^[a-zA-Z_][a-zA-Z0-9_]*$/.
 ///
 /// @example Usage
-/// ```moonbit
+/// ```moonbit nocheck
 /// let env = parse_compat("GREETING=hello world")
 /// // Returns: {"GREETING": "hello world"}
 /// ```
@@ -79,7 +80,7 @@ pub fn parse_compat(text : String) -> Map[String, String] {
 /// ```
 ///
 /// @example Usage
-/// ```moonbit
+/// ```moonbit nocheck
 /// let object = Map::new()
 /// object["GREETING"] = "hello world"
 /// let result = stringify_compat(object)
@@ -99,7 +100,7 @@ pub fn stringify_compat(object : Map[String, String]) -> String {
 /// which automatically loads the .env file and exports variables to the environment.
 ///
 /// @example Auto-loading
-/// ```moonbit
+/// ```moonbit nocheck
 /// auto_load_compat() // Automatically loads .env and exports to environment
 /// ```
 pub fn auto_load_compat() -> Unit {

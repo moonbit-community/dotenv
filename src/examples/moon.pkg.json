@@ -1,9 +1,0 @@
-{
-  "is-main": true,
-  "import": [
-    "moonbitlang/async",
-    "allwefantasy/dotenv/dotenv",
-    "allwefantasy/dotenv/fileops"
-  ],
-  "supported-targets": "native"
-}

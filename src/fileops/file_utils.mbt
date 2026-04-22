@@ -10,7 +10,7 @@
 /// 
 /// # 返回值
 /// 文件行的数组
-pub async fn read_lines(file_path : String) -> Array[String] raise {
+pub async fn read_lines(file_path : String) -> Array[String] {
   let content = read_file_content(file_path)
   let line_views = content.split("\n").to_array()
   let lines = Array::new()
@@ -33,7 +33,7 @@ pub async fn read_lines(file_path : String) -> Array[String] raise {
 /// 这个函数只进行基本的格式验证，详细的解析需要使用 dotenv 包。
 pub async fn validate_env_file_format(
   env_file : String,
-) -> (Bool, Array[String]) raise {
+) -> (Bool, Array[String]) {
   let content = read_file_content(env_file)
   validate_env_content_format(content)
 }
@@ -62,7 +62,7 @@ pub fn validate_env_content_format(content : String) -> (Bool, Array[String]) {
     }
 
     // 检查是否包含等号
-    if !(line.contains("=")) {
+    if !line.contains("=") {
       errors.push("行 \{line_num}: 缺少等号 - '\{line}'")
       is_valid = false
     }
